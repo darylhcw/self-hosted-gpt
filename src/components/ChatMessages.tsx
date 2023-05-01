@@ -1,3 +1,4 @@
+import '@/markdown-styles/tokyo-night-dark.css';
 import MessageCard from "@/components/MessageCard";
 import { Chat } from "@/types";
 
