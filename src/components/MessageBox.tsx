@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { ChatStatus } from '@/types';
 import styles from './MessageBox.module.css'
 
-type SendCB = (message: string) => void;
 
-export default function MessageBox({sendCB} : {sendCB: SendCB}) {
+interface MessageBoxProps {
+  status: ChatStatus;
+  sendCB: (message: string) => void;
+}
+
+
+export default function MessageBox({status, sendCB} : MessageBoxProps) {
   const [message, setMessage] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -49,6 +55,7 @@ export default function MessageBox({sendCB} : {sendCB: SendCB}) {
         rows={1}
       />
       <button onClick={sendMessage}>Send</button>
+      <p>{status}</p>
     </>
   );
 };

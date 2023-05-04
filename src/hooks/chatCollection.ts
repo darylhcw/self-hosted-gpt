@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useCallback, useReducer } from 'react';
 import { LSProxy } from '@/lsProxy';
 import { ChatCollection, ChatHeader } from '@/types';
 
@@ -10,8 +10,8 @@ import { ChatCollection, ChatHeader } from '@/types';
  * - Chats are stored individually using LS_CH_PREFIX_KEY + ID.
  ********************************************/
 
-type ChatCollDispatchAction =
-  | {type: "add-chat", header: ChatHeader}
+export type ChatCollDispatchAction =
+  | {type: "add-chat", header?: ChatHeader}
   | {type: "set-chat-title", id: number, title: string}
   | {type: "set-chat-preview", id: number, preview: string}
   | {type: "delete-chat", id: number}
@@ -21,14 +21,31 @@ const initialState = initialChatCollection();
 const chatCollReducer = (state: ChatCollection, action: ChatCollDispatchAction) => {
   switch (action.type) {
     case 'add-chat': {
-      const newState = [...state, action.header];
+      let newHeader = action.header;
+      if (!newHeader) {
+        const lastChat = state.at(-1);
+        const nextId = lastChat ? lastChat.id + 1 : 1;
+        // No header, add "New Chat" to latest position.
+        newHeader = {
+          id: nextId,
+          title: "New Chat",
+          preview: "",
+        }
+      }
+
+      const newState = [...state, newHeader];
       saveChatCollToLocalStorage(newState);
+
       return newState
     };
 
     case 'set-chat-title': {
       const newState = state.map((chat) => {
-        if (chat.id === action.id) chat.title = action.title;
+        if (chat.id === action.id) {
+          const newChat = {...chat};
+          newChat.title = action.title;
+          return newChat;
+        }
         return chat;
       })
       saveChatCollToLocalStorage(newState);
@@ -55,30 +72,29 @@ const chatCollReducer = (state: ChatCollection, action: ChatCollDispatchAction) 
 function useChatCollection() {
   const [chatCollection, dispatch] = useReducer(chatCollReducer, initialState);
 
-  const addChat = (header: ChatHeader) => {
+  const addChat = useCallback((header?: ChatHeader) => {
     dispatch({ type: 'add-chat', header: header});
-  };
+  }, [dispatch]);
 
-  const setChatTitle = (chatId: number, title: string) => {
+  const setChatTitle = useCallback((chatId: number, title: string) => {
     dispatch({ type: 'set-chat-title', id: chatId, title: title });
-  }
+  }, [dispatch]);
 
-  const setChatPreview = (chatId: number, preview: string) => {
+  const setChatPreview = useCallback((chatId: number, preview: string) => {
     dispatch({ type: 'set-chat-preview', id: chatId, preview: preview });
-  }
+  }, [dispatch]);
 
-  const deleteChat = (chatId: number) => {
+  const deleteChat = useCallback((chatId: number) => {
     dispatch({ type: 'delete-chat', id: chatId });
-  };
+  }, [dispatch]);
 
   return {
     collection: chatCollection,
-    dispath: dispatch,
+    dispatch: dispatch,
     addChat: addChat,
     setChatTitle: setChatTitle,
     setChatPreview: setChatPreview,
     deleteChat: deleteChat,
-
   }
 }
 
@@ -93,9 +109,7 @@ function initialChatCollection() : ChatCollection {
 }
 
 function saveChatCollToLocalStorage(coll: ChatCollection) {
-  //DISABLE FOR NOW TO TEST.
-  // localStorage.setItem(chatLSKey(chat.id), JSON.stringify(chat));
-  //***FILTER ADD to main
+  LSProxy.setChatCollection(coll);
 }
 
 

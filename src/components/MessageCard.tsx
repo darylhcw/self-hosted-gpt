@@ -5,7 +5,18 @@ import rehypeRaw from 'rehype-raw'
 import styles from "./MessageCard.module.css";
 
 
-export default function MessageCard({ message } : {message: ChatMessage}) {
+export interface MessageCardProps {
+  message: ChatMessage;
+  editMessage: (messageId: number, content: string) => void;
+}
+
+export default function MessageCard({ message, editMessage} : MessageCardProps) {
+  console.log("MC RERENDER:", message.id);
+
+  function editMessageCB() {
+    editMessage(message.id, message.content + "ASDF");
+  }
+
   return (
     <>
       <p>{message.role}</p>
@@ -14,6 +25,7 @@ export default function MessageCard({ message } : {message: ChatMessage}) {
                      linkTarget="_new">
         {message.content}
       </ReactMarkdown>
+      <button onClick={editMessageCB}>EDIT</button>
     </>
   )
 }

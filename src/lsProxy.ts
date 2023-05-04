@@ -13,7 +13,11 @@ class LSProxy {
 
   static getItem<T>(key: string): T | null {
     const data: string | null = localStorage.getItem(key);
-    return data !== null ? JSON.parse(data).value : null;
+    return data !== null ? JSON.parse(data) : null;
+  }
+
+  static removeItem<T>(key: string) {
+    localStorage.removeItem(key);
   }
 
   // Custom - getters do typecheck at runtime.
@@ -23,6 +27,10 @@ class LSProxy {
     if (isChatCollection(coll)) return coll;
 
     return null;
+  }
+
+  static setChatCollection(collection: ChatCollection) {
+    this.setItem<ChatCollection>(Constants.LS_CH_KEY, collection);
   }
 
   static getChat(id: number) : Chat | null {
@@ -35,6 +43,10 @@ class LSProxy {
 
   static setChat(chat: Chat) {
     this.setItem<Chat>(this.chatPrefixKey(chat.id), chat);
+  }
+
+  static removeChat(id: number) {
+    this.removeItem<Chat>(this.chatPrefixKey(id));
   }
 
   static chatPrefixKey(id: number) {

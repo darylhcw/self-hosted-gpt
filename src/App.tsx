@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { sendChat } from '@/api/chat';
+import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
 import { useChatCollection } from './hooks/chatCollection';
@@ -10,71 +11,98 @@ import styles from './App.module.css';
 
 
 export default function App() {
-  const chatCollection = useChatCollection();
+  const chatColl = useChatCollection();
+  const collection = chatColl.collection;
+
   const chat = useChat(initialChatId());
   const currentChat = chat.chat;
 
   const [settings, setSettings] = useState<UserSettings>(initialSettings());
   const model = settings.model;
 
-  useEffect(() => {
-  /*   if (!currentChat && chatHistory.length > 0) {
-      setCurrentChat(chatHistory.at(-1));
-    }
+  const [a, setA] = useState(1);
 
-    // TODO: Reexamine?
-    const currentId = currentChat?.id
-    if (currentId) {
-      const newCurrentChat = chatHistory.find((chat) => chat.id === currentId);
-      setCurrentChat(newCurrentChat);
+  function addNewChat() {
+    if (currentChat.new) return;
+
+    let id = 1;
+    const lastChat = collection.at(-1);
+    if (lastChat) id = lastChat.id + 1;
+
+    chat.newChat(id);
+  }
+
+  const setCurrentChat = useCallback((id: number) => {
+    if (id !== currentChat.id) {
+      chat.setCurrentChat(id);
     }
- */
-  }, [])
+  }, [currentChat.id, chat.setCurrentChat])
+
+  const deleteChat = useCallback((id: number) => {
+    chat.deleteChat(id)
+    chatColl.deleteChat(id)
+    if (id === currentChat.id) {
+      addNewChat();
+    }
+  }, [currentChat.id, chat.deleteChat, chatColl.deleteChat])
 
   async function sendCallback(message: string) {
+    const sentChatId = currentChat.id;
+    const lastMessage = currentChat.messages.at(-1);
+    let messageId = lastMessage ? lastMessage.id + 1 : 1;
+
     const newMessage = {
+      id: messageId,
       role: "user" as Role,
       content: message,
     }
 
-    chat.addMessage(newMessage);
+    chat.addMessage(sentChatId, newMessage);
     if (currentChat.new) {
-      chatCollection.addChat(chat.getDefaultHeader(message))
-      chat.setNew(false);
+      chatColl.addChat(chat.getDefaultHeader(message))
+      chat.setOld();
     }
 
     const messages = [...currentChat.messages, newMessage]
+    chat.setStatus(sentChatId, "SENDING");
 
     const res = await sendChat(model, messages);
     if (res.status === "SUCCESS") {
-      const gptResponse = res.data?.choices[0]?.message;
+      const gptResponse = res.data?.choices?.[0]?.message;
       if (gptResponse) {
-        chat.addMessage(gptResponse);
+        gptResponse.id = messageId + 1;
+        chat.addMessage(sentChatId, gptResponse);
       }
+      chat.setStatus(sentChatId, "READY");
     } else if (res.status === "ERROR") {
       // Show error message/reason
       // Change to "regenerate response"
-      // Do different send (don't append user sent message).
+      chat.setStatus(sentChatId, "ERROR");
     }
   }
 
   function initialChatId() {
-    const last = chatCollection.collection.at(-1);
-    if (last) return last.id;
-
-    return null;
+    const last = collection.at(-1);
+    return last ? last.id : null;
   }
 
   return (
-    <main className={styles.main}>
-      <ChatMessages chat={currentChat}/>
-      <div className={styles["message-box"]}>
-        <MessageBox sendCB={sendCallback}/>
-      </div>
-    </main>
+    <>
+      <SideBar coll={collection}
+               addNewChat={addNewChat}
+               setCurrentChat={setCurrentChat}
+               setChatTitle={chatColl.setChatTitle}
+                deleteChat={deleteChat}/>
+      <main className={styles.main}>
+        <ChatMessages chat={currentChat} editMessage={chat.editMessage}/>
+        <button onClick={() => {setA(a+1)}}>RENDER APP</button>
+        <div className={styles["message-box"]}>
+          <MessageBox status={currentChat.status} sendCB={sendCallback}/>
+        </div>
+      </main>
+    </>
   )
 }
-
 
 /*********************************************
  * Init

@@ -7,6 +7,8 @@
  */
 export type Role = 'user' | 'system' | 'assistant';
 
+export type ChatStatus = 'SENDING' | 'READY' | 'ERROR' | 'DELETING';
+
 export type ChatCollection = ChatHeader[];
 
 export interface ChatHeader {
@@ -15,14 +17,17 @@ export interface ChatHeader {
   preview: string;  // Preview of first message.
 }
 
+// "messages" are in sequential order, sorted by id.
 export interface Chat {
-  new: boolean;
   id: number;
-  title: string;
+  status: ChatStatus;
   messages: ChatMessage[];
+  createdAt: number,
+  new: boolean;
 }
 
 export interface ChatMessage {
+  id: number,
   role: Role;
   content: string;
 }
@@ -37,7 +42,6 @@ export function isChatCollection(coll: ChatCollection) : coll is ChatCollection 
   for (const header of coll) {
     if (!isChatHeader(header)) return false;
   }
-
   return true;
 }
 
@@ -45,7 +49,7 @@ export function isChatHeader(header: ChatHeader): header is ChatHeader {
   if (!header) return false;
   if (header.id === undefined || typeof header.id !== 'number') return false;
   if (header.title === undefined || typeof header.title !== 'string') return false;
-  if (header.preview === undefined || typeof header.id !== 'string') return false;
+  if (header.preview === undefined || typeof header.preview !== 'string') return false;
 
   return true;
 }
@@ -53,17 +57,18 @@ export function isChatHeader(header: ChatHeader): header is ChatHeader {
 export function isChat(chat: Chat): chat is Chat {
   if (!chat) return false;
   if (chat.id === undefined || typeof chat.id !== 'number') return false;
-  if (chat.title === undefined || typeof chat.title !== 'string') return false;
+  if (chat.status === undefined || typeof chat.status !== 'string') return false;
   if (chat.messages === undefined) return false;
+  if (chat.createdAt === undefined || typeof chat.createdAt !== 'number') return false;
   for (const msg of chat.messages) {
     if (!isChatMessage(msg)) return false;
   }
-
   return true;
 }
 
 export function isChatMessage(chatMsg: ChatMessage): chatMsg is ChatMessage {
   if (!chatMsg) return false;
+  if (chatMsg.id === undefined || typeof chatMsg.id !== 'number') return false;
   if (chatMsg.role === undefined || typeof chatMsg.role !== 'string') return false;
   if (chatMsg.content === undefined || typeof chatMsg.content !== 'string') return false;
 
@@ -75,8 +80,3 @@ export function isChatMessage(chatMsg: ChatMessage): chatMsg is ChatMessage {
  * API
  */
 export type APIStatus =  "SUCCESS" | "ERROR"
-
-
-export {
-
-}
