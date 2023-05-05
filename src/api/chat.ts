@@ -123,6 +123,32 @@ async function test(model: string) {
 }
 
 /*********************************************
+ * Other
+ ********************************************/
+
+const MODELS_URL = "https://api.openai.com/v1/models";
+
+// Get available models from OpenAI
+async function getModels() {
+  try {
+    const response = await fetch(MODELS_URL, {
+      method: "GET",
+      headers: header(),
+    })
+    const res = await response.json();
+    console.log(res);
+    return res;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(error.message);
+    } else {
+      console.error(error);
+    }
+  }
+}
+
+
+/*********************************************
  * Debug/Test
  ********************************************/
 
@@ -187,5 +213,6 @@ async function mockSendChatError(model: string, messages: ChatMessage[]) {
 export {
   setAPIKey,
   sendChat,
-  test
+  test,
+  getModels,
 }

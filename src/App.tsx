@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { sendChat } from '@/api/chat';
+import { sendChat, getModels } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
@@ -147,6 +147,7 @@ export default function App() {
       <main className={styles.main}>
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
+        <button onClick={() => {getModels()}}>GET MODELS (CONSOLE)</button>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
                       sendCB={sendCallback}
