@@ -9,11 +9,12 @@ import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
 export type ChatDispatchAction =
   | {type: "new-chat", id: number}
   | {type: "add-message", chatId: number, message: ChatMessage, createdAt: number}
-  | {type: "edit-message", messageId: number, content: string}
+  | {type: "edit-messages", messages: ChatMessage[]}
   | {type: "set-chat", id: number}
   | {type: "set-status", chatId: number, status: ChatStatus, setAt: number}
   | {type: "set-old"}
   | {type: "delete-chat", chatId: number}
+  | {type: "set-error-message", chatId: number, message: string, setAt: number}
 
 const chatReducer = (state: Chat, action: ChatDispatchAction) => {
   switch (action.type) {
@@ -48,25 +49,8 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
       // return isCurrent ? newState : state;
     }
 
-    case 'edit-message': {
-      // delete all after the target message (same as ChatGPT - content useless after)
-      const targetMessage = state.messages.findLast((message) => message.id === action.messageId);
-      if (!targetMessage) {
-        console.error("Couldn't find target message during edit message!");
-        return state;
-      }
-
-      const newMessage = {
-        id: action.messageId,
-        role: targetMessage.role,
-        content: action.content,
-      }
-
-      const newMessages = state.messages.filter((message) => message.id < action.messageId);
-      newMessages.push(newMessage);
-
-      const newState = {...state, messages: newMessages}
-
+    case 'edit-messages': {
+      const newState = {...state, messages: action.messages}
       saveChatToLocalStorage(newState);
       return newState;
     }
@@ -114,6 +98,25 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
         return state;
       }
     }
+
+    case 'set-error-message': {
+      let chat = state;
+      if (chat.createdAt > action.setAt) return state;
+
+      const isCurrent = (state.id === action.chatId);
+      if (!isCurrent) {
+        const savedChat = loadChatFromLocalStorage(action.chatId);
+        if (!savedChat) {
+          console.warn("Unable to set error message on chat - error or chat may have been deleted");
+          return state;
+        } else {
+          chat = savedChat;
+        }
+      }
+
+      const newChat = {...chat, latestError: action.message}
+      return newChat;
+    }
   }
 }
 
@@ -121,31 +124,31 @@ function useChat(id : number | null) {
   const [chat, dispatch] = useReducer(chatReducer, initialChat(id));
 
   const newChat = useCallback((id: number) => {
-    dispatch({ type: 'new-chat', id:id});
+    dispatch({ type: 'new-chat', id:id });
   }, [dispatch]);
 
   const addMessage = useCallback((chatId: number, message: ChatMessage) => {
-    dispatch({ type: 'add-message', chatId: chatId, message: message, createdAt: Date.now()});
+    dispatch({ type: 'add-message', chatId: chatId, message: message, createdAt: Date.now() });
   }, [dispatch]);
 
-  const editMessage = useCallback((messageId: number, content: string) => {
-    dispatch({ type: 'edit-message', messageId: messageId, content: content});
+  const editMessage = useCallback((messages: ChatMessage[]) => {
+    dispatch({ type: 'edit-messages', messages: messages }) ;
   }, [dispatch]);
 
   const setCurrentChat = useCallback((id: number) => {
-    dispatch({ type: 'set-chat', id: id});
+    dispatch({ type: 'set-chat', id: id });
   } ,[dispatch]);
 
   const deleteChat = useCallback((id: number) => {
-    dispatch({ type: 'delete-chat', chatId: id});
+    dispatch({ type: 'delete-chat', chatId: id });
   } ,[dispatch]);
 
   const setStatus = useCallback((chatId: number, status: ChatStatus) => {
-    dispatch({ type: 'set-status', chatId: chatId, status: status, setAt: Date.now()});
+    dispatch({ type: 'set-status', chatId: chatId, status: status, setAt: Date.now() });
   } ,[dispatch]);
 
   const setOld = useCallback(() => {
-    dispatch({ type: 'set-old'});
+    dispatch({ type: 'set-old' });
   } ,[dispatch]);
 
   const getDefaultHeader : (message: string) => ChatHeader = useCallback((message) => {
@@ -155,6 +158,10 @@ function useChat(id : number | null) {
       preview: message?.length <= 25 ? message : message.substring(0, 25),
     }
   } ,[chat]);
+
+  const setErrorMessage = useCallback((chatId: number, message: string) => {
+    dispatch({ type: "set-error-message", chatId: chatId, message:message, setAt:Date.now() });
+  }, [dispatch]);
 
   return {
     chat: chat,
@@ -166,6 +173,7 @@ function useChat(id : number | null) {
     setOld: setOld,
     setCurrentChat: setCurrentChat,
     deleteChat: deleteChat,
+    setErrorMessage: setErrorMessage,
     getDefaultHeader: getDefaultHeader,
   }
 }
@@ -178,38 +186,6 @@ function isDupeMessage(messages: ChatMessage[], messageId: number) {
     return lastMessage.id >= messageId;
   }
 }
-
-
-/*********************************************
- * "Async" functions
- * - Chat switching possible when sending.
- * - These methods affect the saved chat state rather than the one in memory.
- * - Refresh is called to refresh state if needed.
- ********************************************/
-
-type RefreshCB = (id: number) => void;
-
-function setSendingAsync(chatId: number, sending: boolean, refreshCB: RefreshCB) {
-  const chat = loadChatFromLocalStorage(chatId);
-  if (!chat) {
-    console.warn("Unable to add message to chat (async response) - error or chat may have been deleted");
-    return;
-  }
-
-  // chat.sending = sending;
-  saveChatToLocalStorage(chat);
-
-  refreshCB(chatId);
-}
-
-/*********************************************
- * Scenarios:
- * - Close tab before callback?
- *   = "Sending" state on load (prevents sending)
- * - Debounce send
- *
- * === Generic error handling
- ********************************************/
 
 
 /*********************************************

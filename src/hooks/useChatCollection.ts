@@ -73,7 +73,7 @@ function useChatCollection() {
   const [chatCollection, dispatch] = useReducer(chatCollReducer, initialState);
 
   const addChat = useCallback((header?: ChatHeader) => {
-    dispatch({ type: 'add-chat', header: header});
+    dispatch({ type: 'add-chat', header: header });
   }, [dispatch]);
 
   const setChatTitle = useCallback((chatId: number, title: string) => {
