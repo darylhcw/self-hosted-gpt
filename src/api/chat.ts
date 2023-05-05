@@ -152,13 +152,14 @@ async function getModels() {
  * Debug/Test
  ********************************************/
 
-const TIMEOUT_LENGTH = 3000;
+const TIMEOUT_LENGTH = 1000;
 
 function getFakeCompletionResponse(model: string, sentMessage?: string) {
   if (!sentMessage) sentMessage = "MOCK SEND MESSAGE";
 
-  let ptokens = sentMessage.split(" ").length;
-  let ctokens = ptokens + 2;
+  const ptokens = sentMessage.split(" ").length;
+  const ctokens = ptokens + 2;
+  const content = `MOCK_REPLY: ${sentMessage}`;
 
   return {
     "id": "mock-api-response-id",
@@ -169,7 +170,7 @@ function getFakeCompletionResponse(model: string, sentMessage?: string) {
       {
         "message": {
           "role": "assistant",
-          "content": `MOCK_REPLY: ${sentMessage}`,
+          "content": content,
         },
         "finish_reason": "stop",
         "index": 0,
