@@ -24,6 +24,7 @@ export interface Chat {
   messages: ChatMessage[];
   createdAt: number,
   new: boolean;
+  latestError?: string
 }
 
 export interface ChatMessage {

@@ -3,9 +3,9 @@ import { sendChat } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
-import { useChatCollection } from './hooks/chatCollection';
-import { useChat } from './hooks/chat';
-import { UserSettings, Role } from './types';
+import { useChatCollection } from './hooks/useChatCollection';
+import { useChat } from './hooks/useChat';
+import { ChatMessage, UserSettings, Role } from './types';
 import { Constants } from './constants';
 import styles from './App.module.css';
 
@@ -66,6 +66,29 @@ export default function App() {
     const messages = [...currentChat.messages, newMessage]
     chat.setStatus(sentChatId, "SENDING");
 
+    sendAndReceiveFromGPT(sentChatId, messageId, messages);
+  }
+
+  async function editCallback(messageId: number, content: string) {
+    const sentChatId = currentChat.id;
+    const editedMessages = getMessagesAfterEdit(messageId, content);
+    chat.editMessage(editedMessages);
+
+    sendAndReceiveFromGPT(sentChatId, messageId, editedMessages);
+  }
+
+  async function resendCallback() {
+    const sentChatId = currentChat.id;
+    const lastMessage = currentChat.messages.at(-1);
+    let messageId = lastMessage ? lastMessage.id : 1;
+
+    const messages = [...currentChat.messages]
+    chat.setStatus(sentChatId, "SENDING");
+
+    sendAndReceiveFromGPT(sentChatId, messageId, messages);
+  }
+
+  async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[]) {
     const res = await sendChat(model, messages);
     if (res.status === "SUCCESS") {
       const gptResponse = res.data?.choices?.[0]?.message;
@@ -75,9 +98,10 @@ export default function App() {
       }
       chat.setStatus(sentChatId, "READY");
     } else if (res.status === "ERROR") {
-      // Show error message/reason
-      // Change to "regenerate response"
       chat.setStatus(sentChatId, "ERROR");
+      const errData = res.data;
+      const errMsg = errData.error ? errData.error.message : errData;
+      chat.setErrorMessage(sentChatId, String(errMsg));
     }
   }
 
@@ -86,23 +110,55 @@ export default function App() {
     return last ? last.id : null;
   }
 
+  function getLastChatSender() {
+    const lastSender = currentChat?.messages.at(-1)?.role;
+    return lastSender ?? null;
+  }
+
+  function getMessagesAfterEdit(messageId: number, content: string) {
+    const messages = currentChat.messages;
+
+    // delete all after the target message (same as ChatGPT - content useless after)
+    const targetMessage = currentChat.messages.findLast((message) => message.id === messageId);
+    if (!targetMessage) {
+      console.error("Couldn't find target message during edit message!");
+      return messages;
+    }
+
+    const newMessage = {
+      id: messageId,
+      role: targetMessage.role,
+      content: content,
+    }
+
+    const newMessages = messages.filter((message) => message.id < messageId);
+    newMessages.push(newMessage);
+
+    return newMessages;
+  }
+
   return (
     <>
       <SideBar coll={collection}
                addNewChat={addNewChat}
                setCurrentChat={setCurrentChat}
                setChatTitle={chatColl.setChatTitle}
-                deleteChat={deleteChat}/>
+               deleteChat={deleteChat}/>
       <main className={styles.main}>
-        <ChatMessages chat={currentChat} editMessage={chat.editMessage}/>
+        <ChatMessages chat={currentChat} editMessage={editCallback}/>
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
         <div className={styles["message-box"]}>
-          <MessageBox status={currentChat.status} sendCB={sendCallback}/>
+          <MessageBox status={currentChat.status}
+                      sendCB={sendCallback}
+                      resendCB={resendCallback}
+                      lastSender={getLastChatSender()}
+                      errMsg={currentChat.latestError ?? undefined}/>
         </div>
       </main>
     </>
   )
 }
+
 
 /*********************************************
  * Init

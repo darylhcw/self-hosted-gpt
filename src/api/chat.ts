@@ -1,6 +1,6 @@
 import { Constants } from '@/constants';
 import { APIError } from './apiError';
-import { ChatMessage, APIStatus } from '@/types';
+import { ChatMessage } from '@/types';
 
 const ENV = import.meta.env;
 const COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
