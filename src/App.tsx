@@ -48,6 +48,7 @@ export default function App() {
 
   async function sendCallback(message: string) {
     const sentChatId = currentChat.id;
+    const chatTokens = currentChat.tokens;
     const lastMessage = currentChat.messages.at(-1);
     let messageId = lastMessage ? lastMessage.id + 1 : 1;
 
@@ -66,45 +67,48 @@ export default function App() {
     const messages = [...currentChat.messages, newMessage]
     chat.setStatus(sentChatId, "SENDING");
 
-    sendAndReceiveFromGPT(sentChatId, messageId, messages);
+    sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
   }
 
-  async function editCallback(messageId: number, content: string) {
+  const editCallback = useCallback(async(messageId: number, content: string) => {
     const sentChatId = currentChat.id;
     const editedMessages = getMessagesAfterEdit(messageId, content);
     chat.editMessage(editedMessages);
+    const chatTokens = editedMessages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
 
-    await sendAndReceiveFromGPT(sentChatId, messageId, editedMessages);
+    await sendAndReceiveFromGPT(sentChatId, messageId, editedMessages, chatTokens);
     chat.refreshChatTokens(sentChatId);
-  }
+  }, [currentChat]);
 
   async function resendCallback() {
     const sentChatId = currentChat.id;
+    const chatTokens = currentChat.tokens;
     const lastMessage = currentChat.messages.at(-1);
     let messageId = lastMessage ? lastMessage.id : 1;
 
     const messages = [...currentChat.messages]
     chat.setStatus(sentChatId, "SENDING");
 
-    sendAndReceiveFromGPT(sentChatId, messageId, messages);
+    sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
   }
 
-  async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[]) {
+  async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[], chatTokens?: number) {
     const res = await sendChat(model, messages);
+
     if (res.status === "SUCCESS") {
       const gptResponse = res.data?.choices?.[0]?.message;
       if (gptResponse) {
         gptResponse.id = messageId + 1;
         chat.addMessage(sentChatId, gptResponse);
 
+        chatTokens = chatTokens ?? 0;
         const usage = res.data?.usage;
         const promptTokens = usage?.prompt_tokens ?? 0;
         const completionTokens = usage?.completion_tokens ?? 0;
-        chat.setMessageTokens(sentChatId, messageId, promptTokens);
-        chat.setMessageTokens(sentChatId, messageId + 1,completionTokens);
-
-        const currentTotal = currentChat.tokens ?? 0;
-        chat.setChatTokens(sentChatId, currentTotal + promptTokens + completionTokens);
+        const currentMessageTokens = promptTokens - chatTokens;
+        chat.setMessageTokens(sentChatId, messageId, currentMessageTokens);
+        chat.setMessageTokens(sentChatId, messageId + 1, completionTokens);
+        chat.setChatTokens(sentChatId, chatTokens + promptTokens + completionTokens);
       }
       chat.setStatus(sentChatId, "READY");
     } else if (res.status === "ERROR") {
@@ -159,7 +163,7 @@ export default function App() {
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
         <button onClick={() => {getModels()}}>GET MODELS (CONSOLE)</button>
         { currentChat.tokens && overContextLimit(model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
-        <p>{`Total tokens: ${currentChat.tokens ?? "?"}`}</p>
+        <p>{`Total tokens: ${currentChat.tokens ?? "0"}`}</p>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
                       sendCB={sendCallback}
