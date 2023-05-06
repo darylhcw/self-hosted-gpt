@@ -1,7 +1,8 @@
 import '@/markdown-styles/tokyo-night-dark.css';
 import { memo } from 'react';
-import MessageCard from "@/components/MessageCard";
-import { Chat } from "@/types";
+import MessageCard from '@/components/MessageCard';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { Chat } from '@/types';
 
 export interface ChatMessagesProps {
   editMessage: (messageId: number, content: string) => void
@@ -10,11 +11,16 @@ export interface ChatMessagesProps {
 
 
 export default function ChatMessages({editMessage, chat} : ChatMessagesProps) {
+  const settings = useUserSettings();
+
   return (
     <>
       { chat?.messages.map((message, index) => {
-          if (message.role === "system") return null;
-          return (<MemoisedMessageCard key={index} message={message} editMessage={editMessage}/>);
+          if (message.role === 'system') return null;
+          return (<MemoisedMessageCard key={index}
+                                       theme={settings.theme}
+                                       message={message}
+                                       editMessage={editMessage}/>);
         }
       )}
     </>

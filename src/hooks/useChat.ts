@@ -1,5 +1,7 @@
 import { useReducer, useCallback } from 'react';
+import { useUserSettings } from './useUserSettings';
 import { LSProxy } from '@/lsProxy';
+import { Constants } from '@/constants';
 import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
 
 /*********************************************
@@ -11,7 +13,7 @@ import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
  ********************************************/
 
 export type ChatDispatchAction =
-  | {type: "new-chat", id: number}
+  | {type: "new-chat", id: number, sysMsg: string}
   | {type: "add-message", chatId: number, message: ChatMessage, createdAt: number}
   | {type: "edit-messages", messages: ChatMessage[]}
   | {type: "set-chat", id: number}
@@ -26,7 +28,7 @@ export type ChatDispatchAction =
 const chatReducer = (state: Chat, action: ChatDispatchAction) => {
   switch (action.type) {
     case 'new-chat': {
-      return defaultChat(action.id);
+      return defaultChat(action.id, action.sysMsg);
     }
 
     case 'add-message': {
@@ -134,6 +136,8 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
 
       return state.id === action.chatId ? newChat : chat;
     }
+
+    default: return state;
   }
 
   function getSavedChatForAction(chatId: number) {
@@ -153,11 +157,12 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
 }
 
 function useChat(id : number | null) {
-  const [chat, dispatch] = useReducer(chatReducer, initialChat(id));
+  const settings = useUserSettings();
+  const [chat, dispatch] = useReducer(chatReducer, initialChat(id, settings.systemMessage));
 
   const newChat = useCallback((id: number) => {
-    dispatch({ type: 'new-chat', id:id });
-  }, [dispatch]);
+    dispatch({ type: 'new-chat', id:id, sysMsg: settings.systemMessage});
+  }, [dispatch, settings.systemMessage]);
 
   const addMessage = useCallback((chatId: number, message: ChatMessage) => {
     dispatch({ type: 'add-message', chatId: chatId, message: message, createdAt: Date.now() });
@@ -244,30 +249,35 @@ function isDupeMessage(messages: ChatMessage[], messageId: number) {
 // -  Set them to error accordingly.
 const loadedChats = new Set<number>();
 
-function initialChat(id: number | null) : Chat {
+function initialChat(id: number | null, sysMsg?: string) : Chat {
   if (id) {
     const savedChat = loadChatFromLocalStorage(id);
     if (savedChat) return savedChat;
   }
 
-  return defaultChat(1);
+  return defaultChat(1, sysMsg);
 }
 
-function defaultChat(id: number) : Chat {
+function defaultChat(id: number, sysMsg?: string) : Chat {
+  // Empty string should give null here!
+  const firstMsg = sysMsg ? initialSystemMessage(sysMsg) : null;
+  const messages = [];
+  if (firstMsg) messages.push(firstMsg);
+
   return {
     id: id,
-    messages: [initialSystemMessage()],
+    messages: messages,
     status: "READY" as ChatStatus,
     createdAt: Date.now(),
     new: true,
   }
 }
 
-function initialSystemMessage() : ChatMessage {
+function initialSystemMessage(sysMsg: string) : ChatMessage {
   return {
      id: 1,
      role: "system",
-     content: "You are ChatGPT, a cutting-edge Large Language Model (LLM) trained by OpenAI. Strictly and accurately follow the user's instructions."
+     content: sysMsg ?? Constants.DEFAULT_SYS_MSG,
   }
 }
 

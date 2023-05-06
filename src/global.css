@@ -1,5 +1,6 @@
 :root {
-
+  --large-screen: 2560px;
+  --small-screen: 720px;
 }
 
 html,

@@ -1,4 +1,5 @@
-import { memo } from 'react';
+import { useState, memo } from 'react';
+import UserSettings from './UserSettings';
 import SideBarChat from '@/components/SideBarChat';
 import { ChatCollection } from '@/types';
 import style from './SideBar.module.css'
@@ -20,21 +21,28 @@ export default function SideBar({
   deleteChat,
 } : SideBarProps
 ){
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <nav>
-      <button onClick={addNewChat}>New Chat</button>
-      <ol>
-        {coll.map((chat) =>
-          <li key={chat.id}>
-            <MemoedSideBarChat header={chat}
-                               setCurrentChat={setCurrentChat}
-                               setChatTitle={setChatTitle}
-                               deleteChat={deleteChat}/>
-          </li>
-        )}
-      </ol>
-    </nav>
+    <>
+      {/* Modal: Layout independent of rest of content */}
+      { settingsOpen && <UserSettings closeSettings={() => setSettingsOpen(false)}/> }
+
+      <nav>
+        <button onClick={addNewChat}>New Chat</button>
+        <ol>
+          {coll.map((chat) =>
+            <li key={chat.id}>
+              <MemoedSideBarChat header={chat}
+                                setCurrentChat={setCurrentChat}
+                                setChatTitle={setChatTitle}
+                                deleteChat={deleteChat}/>
+            </li>
+          )}
+        </ol>
+      <button onClick={() => setSettingsOpen(!settingsOpen)}>Settings</button>
+      </nav>
+    </>
   )
 }
 

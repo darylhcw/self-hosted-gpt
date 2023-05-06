@@ -2,9 +2,7 @@ import { Constants } from '@/constants';
 import { APIError } from './apiError';
 import { ChatMessage } from '@/types';
 
-const ENV = import.meta.env;
 const COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
-const LS_API_KEY = Constants.LS_API_KEY;
 
 // Debug flags useful for debuggin in dev
 const USE_MOCK_API = false;
@@ -12,38 +10,10 @@ const USE_MOCK_API_ERROR = false;
 
 
 /*********************************************
- * API Key
- * - Set in ENV.
- * - For the hosted version, this taken from user input
- *   and saved in local storage.
- ********************************************/
-
-let apiKey = initAPIKey();
-
-function initAPIKey() {
-  let key = localStorage?.getItem(LS_API_KEY);
-  if (!key) key = ENV.VITE_OPENAI_API_KEY;
-  return key;
-}
-
-function setAPIKey(key: string) {
-  apiKey = key;
-  localStorage?.setItem(LS_API_KEY, key);
-}
-
-function header() {
-  return {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${apiKey}`
-  }
-}
-
-
-/*********************************************
  * Chat Completion
  ********************************************/
 
-async function sendChat(model: string, messages: ChatMessage[]) {
+async function sendChat(apiKey: string, model: string, messages: ChatMessage[]) {
   if (USE_MOCK_API) return mockSendChat(model, messages);
   if (USE_MOCK_API_ERROR) return mockSendChatError(model, messages);
 
@@ -62,7 +32,7 @@ async function sendChat(model: string, messages: ChatMessage[]) {
   try {
     const response = await fetch(COMPLETIONS_URL, {
       method: "POST",
-      headers: header(),
+      headers: header(apiKey),
       body: JSON.stringify(body),
     })
 
@@ -93,7 +63,7 @@ async function sendChat(model: string, messages: ChatMessage[]) {
 }
 
 // Say HI to ensure OpenAI API is working.
-async function test(model: string) {
+async function test(apiKey: string, model: string) {
   const params = {
     model: model,
     messages: [
@@ -107,7 +77,7 @@ async function test(model: string) {
   try {
     const response = await fetch(COMPLETIONS_URL, {
       method: "POST",
-      headers: header(),
+      headers: header(apiKey),
       body: JSON.stringify(params),
     })
     const res = await response.json();
@@ -122,6 +92,14 @@ async function test(model: string) {
   }
 }
 
+
+function header(apiKey: string) {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${apiKey}`
+  }
+}
+
 /*********************************************
  * Other
  ********************************************/
@@ -129,11 +107,11 @@ async function test(model: string) {
 const MODELS_URL = "https://api.openai.com/v1/models";
 
 // Get available models from OpenAI
-async function getModels() {
+async function getModels(apiKey: string) {
   try {
     const response = await fetch(MODELS_URL, {
       method: "GET",
-      headers: header(),
+      headers: header(apiKey),
     })
     const res = await response.json();
     console.log(res);
@@ -212,7 +190,6 @@ async function mockSendChatError(model: string, messages: ChatMessage[]) {
 
 
 export {
-  setAPIKey,
   sendChat,
   test,
   getModels,

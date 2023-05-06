@@ -2,15 +2,17 @@ import { ChatMessage } from "@/types";
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw'
+import { Theme } from '@/types';
 import styles from "./MessageCard.module.css";
 
 
 export interface MessageCardProps {
+  theme: Theme;
   message: ChatMessage;
   editMessage: (messageId: number, content: string) => void;
 }
 
-export default function MessageCard({ message, editMessage} : MessageCardProps) {
+export default function MessageCard({ theme, message, editMessage} : MessageCardProps) {
   console.log("MC RERENDER:", message.id);
 
   function editMessageCB() {
@@ -19,6 +21,7 @@ export default function MessageCard({ message, editMessage} : MessageCardProps) 
 
   return (
     <>
+      <p>{theme}</p>
       <p>{message.role}</p>
       <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
                      components={markdownComps}

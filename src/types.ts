@@ -79,6 +79,29 @@ export function isChatMessage(chatMsg: ChatMessage): chatMsg is ChatMessage {
 }
 
 
+/*********************************************
+ * Settings
+ ********************************************/
+
+export type Theme = "LIGHT" | "DARK";
+
+export interface UserSettings {
+  theme: Theme,
+  model: string,
+  systemMessage: string,
+  apiKey?: string,
+}
+
+export function isUserSettings(settings: UserSettings) : settings is UserSettings {
+  if (!settings) return false;
+  if (settings.theme === undefined || typeof settings.theme !== 'string') return false;
+  if (settings.model === undefined || typeof settings.model !== 'string') return false;
+  if (settings.systemMessage === undefined || typeof settings.systemMessage !== 'string') return false;
+  if (settings.apiKey && typeof settings.apiKey !== 'string') return false;
+
+  return true;
+}
+
 /**
  * API
  */

@@ -3,9 +3,10 @@ import { sendChat, getModels } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
+import { useUserSettings } from './hooks/useUserSettings';
 import { useChatCollection } from './hooks/useChatCollection';
 import { useChat } from './hooks/useChat';
-import { ChatMessage, UserSettings, Role } from './types';
+import { ChatMessage, Role } from './types';
 import { Constants } from './constants';
 import styles from './App.module.css';
 
@@ -17,8 +18,7 @@ export default function App() {
   const chat = useChat(initialChatId());
   const currentChat = chat.chat;
 
-  const [settings, setSettings] = useState<UserSettings>(initialSettings());
-  const model = settings.model;
+  const settings = useUserSettings();
 
   const [a, setA] = useState(1);
 
@@ -93,7 +93,7 @@ export default function App() {
   }
 
   async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[], chatTokens?: number) {
-    const res = await sendChat(model, messages);
+    const res = await sendChat(settings.apiKey ?? "", settings.model, messages);
 
     if (res.status === "SUCCESS") {
       const gptResponse = res.data?.choices?.[0]?.message;
@@ -161,8 +161,8 @@ export default function App() {
       <main className={styles.main}>
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
-        <button onClick={() => {getModels()}}>GET MODELS (CONSOLE)</button>
-        { currentChat.tokens && overContextLimit(model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
+        <button onClick={() => {getModels(settings.apiKey ?? "")}}>GET MODELS (CONSOLE)</button>
+        { currentChat.tokens && overContextLimit(settings.model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
         <p>{`Total tokens: ${currentChat.tokens ?? "0"}`}</p>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
@@ -180,12 +180,6 @@ export default function App() {
 /*********************************************
  * Misc
  ********************************************/
-
-function initialSettings() {
-  return {
-    model : Constants.GPT_3_5
-  }
-}
 
 function overContextLimit(model: string, tokens: number) {
   let max;

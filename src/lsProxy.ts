@@ -1,4 +1,6 @@
-import { ChatCollection, isChatCollection, Chat, isChat } from '@/types';
+import { UserSettings, isUserSettings,
+         ChatCollection, isChatCollection,
+         Chat, isChat } from '@/types';
 import { Constants } from '@/constants';
 
 /*********************************************
@@ -16,11 +18,23 @@ class LSProxy {
     return data !== null ? JSON.parse(data) : null;
   }
 
-  static removeItem<T>(key: string) {
+  static removeItem(key: string) {
     localStorage.removeItem(key);
   }
 
   // Custom - getters do typecheck at runtime.
+  static getUserSettings() : UserSettings | null {
+    const settings : UserSettings | null = this.getItem<UserSettings>(Constants.LS_SETTINGS_KEY);
+    if (!settings) return null;
+    if (isUserSettings(settings)) return settings;
+
+    return null;
+  }
+
+  static setUserSettings(settings: UserSettings) {
+    this.setItem<UserSettings>(Constants.LS_SETTINGS_KEY, settings);
+  }
+
   static getChatCollection() : ChatCollection | null {
     const coll: ChatCollection | null = this.getItem<ChatCollection>(Constants.LS_CH_KEY);
     if (!coll) return null;
@@ -46,7 +60,7 @@ class LSProxy {
   }
 
   static removeChat(id: number) {
-    this.removeItem<Chat>(this.chatPrefixKey(id));
+    this.removeItem(this.chatPrefixKey(id));
   }
 
   static chatPrefixKey(id: number) {
