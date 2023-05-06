@@ -24,13 +24,15 @@ export interface Chat {
   messages: ChatMessage[];
   createdAt: number,
   new: boolean;
-  latestError?: string
+  latestError?: string;
+  tokens?: number;
 }
 
 export interface ChatMessage {
   id: number,
   role: Role;
   content: string;
+  tokens? : number;
 }
 
 export interface UserSettings {

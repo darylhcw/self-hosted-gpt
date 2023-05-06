@@ -25,6 +25,7 @@ export default function MessageCard({ message, editMessage} : MessageCardProps) 
                      linkTarget="_new">
         {message.content}
       </ReactMarkdown>
+      <p>{`Tokens: ${message.tokens ?? "?"}`}</p>
       { message.role === "user" && <button onClick={editMessageCB}>EDIT</button> }
     </>
   )

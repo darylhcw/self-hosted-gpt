@@ -44,7 +44,7 @@ export default function App() {
     if (id === currentChat.id) {
       addNewChat();
     }
-  }, [currentChat.id, chat.deleteChat, chatColl.deleteChat])
+  }, [currentChat.id, chat.deleteChat, chatColl.deleteChat, addNewChat])
 
   async function sendCallback(message: string) {
     const sentChatId = currentChat.id;
@@ -74,7 +74,8 @@ export default function App() {
     const editedMessages = getMessagesAfterEdit(messageId, content);
     chat.editMessage(editedMessages);
 
-    sendAndReceiveFromGPT(sentChatId, messageId, editedMessages);
+    await sendAndReceiveFromGPT(sentChatId, messageId, editedMessages);
+    chat.refreshChatTokens(sentChatId);
   }
 
   async function resendCallback() {
@@ -95,6 +96,15 @@ export default function App() {
       if (gptResponse) {
         gptResponse.id = messageId + 1;
         chat.addMessage(sentChatId, gptResponse);
+
+        const usage = res.data?.usage;
+        const promptTokens = usage?.prompt_tokens ?? 0;
+        const completionTokens = usage?.completion_tokens ?? 0;
+        chat.setMessageTokens(sentChatId, messageId, promptTokens);
+        chat.setMessageTokens(sentChatId, messageId + 1,completionTokens);
+
+        const currentTotal = currentChat.tokens ?? 0;
+        chat.setChatTokens(sentChatId, currentTotal + promptTokens + completionTokens);
       }
       chat.setStatus(sentChatId, "READY");
     } else if (res.status === "ERROR") {
@@ -148,6 +158,7 @@ export default function App() {
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
         <button onClick={() => {getModels()}}>GET MODELS (CONSOLE)</button>
+        <p>{`Total tokens: ${currentChat.tokens ?? "?"}`}</p>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
                       sendCB={sendCallback}

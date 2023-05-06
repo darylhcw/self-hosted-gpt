@@ -4,6 +4,10 @@ import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
 
 /*********************************************
  * Reducer for singular Chat
+ * - For dispatch actions, the idea is that :
+ *   = Immediate actions that don't need a response from GPT/API can set directly
+ *   = Delayed actions that need a response from GPT/API needs to check timestamps
+ *     in case user has deleted the chat!
  ********************************************/
 
 export type ChatDispatchAction =
@@ -15,6 +19,9 @@ export type ChatDispatchAction =
   | {type: "set-old"}
   | {type: "delete-chat", chatId: number}
   | {type: "set-error-message", chatId: number, message: string, setAt: number}
+  | {type: "set-chat-tokens", chatId: number, tokens: number, setAt: number}
+  | {type: "set-message-tokens", chatId: number, messageId: number, tokens: number, setAt: number}
+  | {type: "refresh-chat-tokens", chatId: number}
 
 const chatReducer = (state: Chat, action: ChatDispatchAction) => {
   switch (action.type) {
@@ -23,19 +30,10 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
     }
 
     case 'add-message': {
-      let chat = state;
-      if (chat.createdAt > action.createdAt) return state;
+      if (state.createdAt > action.createdAt) return state;
 
-      const isCurrent = (state.id === action.chatId);
-      if (!isCurrent) {
-        const savedChat = loadChatFromLocalStorage(action.chatId);
-        if (!savedChat) {
-          console.warn("Unable to add message to chat - error or chat may have been deleted");
-          return state;
-        } else {
-          chat = savedChat;
-        }
-      }
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
 
       if (isDupeMessage(chat.messages, action.message.id)) {
         return state;
@@ -45,8 +43,7 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
       const newState = {...chat, messages: newMessages}
 
       saveChatToLocalStorage(newState);
-      return newState;
-      // return isCurrent ? newState : state;
+      return state.id ===  action.chatId ? newState : state;
     }
 
     case 'edit-messages': {
@@ -56,24 +53,15 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
     }
 
     case 'set-status': {
-      let chat = state;
-      if (chat.createdAt > action.setAt) return state;
+      if (state.createdAt > action.setAt) return state;
 
-      const isCurrent = (state.id === action.chatId);
-      if (!isCurrent) {
-        const savedChat = loadChatFromLocalStorage(action.chatId);
-        if (!savedChat) {
-          console.warn("Unable to add message to chat - error or chat may have been deleted");
-          return state;
-        } else {
-          chat = savedChat;
-        }
-      }
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
 
       const newState = {...chat, status: action.status}
-      saveChatToLocalStorage(newState);
 
-      return isCurrent ? newState : state;
+      saveChatToLocalStorage(newState);
+      return state.id ===  action.chatId ? newState : state;
     }
 
     case 'set-old': {
@@ -100,22 +88,66 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
     }
 
     case 'set-error-message': {
-      let chat = state;
-      if (chat.createdAt > action.setAt) return state;
+      if (state.createdAt > action.setAt) return state;
 
-      const isCurrent = (state.id === action.chatId);
-      if (!isCurrent) {
-        const savedChat = loadChatFromLocalStorage(action.chatId);
-        if (!savedChat) {
-          console.warn("Unable to set error message on chat - error or chat may have been deleted");
-          return state;
-        } else {
-          chat = savedChat;
-        }
-      }
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
 
       const newChat = {...chat, latestError: action.message}
-      return newChat;
+      return state.id ===  action.chatId ? newChat : state;
+    }
+
+    case 'set-chat-tokens': {
+      if (state.createdAt > action.setAt) return state;
+
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
+
+      const newChat = {...chat, tokens: action.tokens}
+      return state.id === action.chatId ? newChat: state;
+    }
+
+    case 'set-message-tokens': {
+      if (state.createdAt > action.setAt) return state;
+
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
+
+      const newMessages = chat.messages.map((message) => {
+        if (message.id === action.messageId) {
+          return {...message, tokens:action.tokens};
+        } else {
+          return message;
+        }
+      })
+
+      const newChat = {...chat, messages: newMessages}
+      return state.id === action.chatId ? newChat: state;
+    }
+
+    case 'refresh-chat-tokens': {
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
+
+      const newTokens = chat.messages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
+      const newChat = {...chat, tokens: newTokens}
+
+      return state.id === action.chatId ? newChat : chat;
+    }
+  }
+
+  function getSavedChatForAction(chatId: number) {
+    const isCurrent = (state.id === chatId);
+    if (!isCurrent) {
+      const savedChat = loadChatFromLocalStorage(chatId);
+      if (!savedChat) {
+        console.warn(`Unable to get saved Chat for action ${action.type} - ignore this if chat was deleted!.`);
+        return null;
+      } else {
+        return savedChat;
+      }
+    } else {
+      return state;
     }
   }
 }
@@ -151,6 +183,18 @@ function useChat(id : number | null) {
     dispatch({ type: 'set-old' });
   } ,[dispatch]);
 
+  const setChatTokens = useCallback((chatId: number, tokens: number) => {
+    dispatch({ type: "set-chat-tokens", chatId: chatId, tokens: tokens, setAt: Date.now() });
+  }, [dispatch]);
+
+  const setMessageTokens = useCallback((chatId: number, messageId: number, tokens: number) => {
+    dispatch({ type: "set-message-tokens", chatId: chatId, messageId: messageId, tokens: tokens, setAt: Date.now() });
+  }, [dispatch]);
+
+  const refreshChatTokens = useCallback((chatId: number) => {
+    dispatch({ type: "refresh-chat-tokens", chatId: chatId});
+  }, [dispatch]);
+
   const getDefaultHeader : (message: string) => ChatHeader = useCallback((message) => {
     return {
       id: chat.id,
@@ -174,6 +218,9 @@ function useChat(id : number | null) {
     setCurrentChat: setCurrentChat,
     deleteChat: deleteChat,
     setErrorMessage: setErrorMessage,
+    setChatTokens: setChatTokens,
+    setMessageTokens: setMessageTokens,
+    refreshChatTokens: refreshChatTokens,
     getDefaultHeader: getDefaultHeader,
   }
 }
