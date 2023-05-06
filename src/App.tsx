@@ -158,6 +158,7 @@ export default function App() {
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
         <button onClick={() => {getModels()}}>GET MODELS (CONSOLE)</button>
+        { currentChat.tokens && overContextLimit(model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
         <p>{`Total tokens: ${currentChat.tokens ?? "?"}`}</p>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
@@ -173,11 +174,23 @@ export default function App() {
 
 
 /*********************************************
- * Init
+ * Misc
  ********************************************/
 
 function initialSettings() {
   return {
     model : Constants.GPT_3_5
   }
+}
+
+function overContextLimit(model: string, tokens: number) {
+  let max;
+
+  switch(model) {
+    case Constants.GPT_3_5: max = Constants.GPT_3_5_MAX_TOKENS; break;
+    case Constants.GPT_4: max = Constants.GPT_4_MAX_TOKENS; break;
+    default:
+  }
+
+  return max ? tokens > max : false;
 }
