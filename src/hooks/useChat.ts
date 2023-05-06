@@ -256,10 +256,18 @@ function initialChat(id: number | null) : Chat {
 function defaultChat(id: number) : Chat {
   return {
     id: id,
-    messages: [],
+    messages: [initialSystemMessage()],
     status: "READY" as ChatStatus,
     createdAt: Date.now(),
     new: true,
+  }
+}
+
+function initialSystemMessage() : ChatMessage {
+  return {
+     id: 1,
+     role: "system",
+     content: "You are ChatGPT, a cutting-edge Large Language Model (LLM) trained by OpenAI. Strictly and accurately follow the user's instructions."
   }
 }
 

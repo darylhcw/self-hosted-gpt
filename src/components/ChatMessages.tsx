@@ -12,8 +12,10 @@ export interface ChatMessagesProps {
 export default function ChatMessages({editMessage, chat} : ChatMessagesProps) {
   return (
     <>
-      { chat?.messages.map((message, index) =>
-        <MemoisedMessageCard key={index} message={message} editMessage={editMessage}/>
+      { chat?.messages.map((message, index) => {
+          if (message.role === "system") return null;
+          return (<MemoisedMessageCard key={index} message={message} editMessage={editMessage}/>);
+        }
       )}
     </>
   )
