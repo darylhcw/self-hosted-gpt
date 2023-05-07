@@ -3,7 +3,8 @@ import Modal from '@/components/Modal';
 import {
   useUserSettings,
   useUserSettingsDispatch,
-  userSettingsDispatchFunctions
+  userSettingsDispatchFunctions,
+  shouldUseLocalStorageForAPIKey,
 } from '@/hooks/useUserSettings'
 import { Theme } from '@/types';
 import styles from './UserSettings.module.css';
@@ -24,14 +25,18 @@ export default function UserSettings({closeSettings} : {closeSettings:() => void
   }
 
   function handleAPIKeyChange(e: React.ChangeEvent<HTMLInputElement>) {
-
-
-
     setAPIKey(e.target.value);
   }
 
   function handleSysMsgChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setSystemMessage(e.target.value);
+  }
+
+  function APIKeyValue() {
+    if (!shouldUseLocalStorageForAPIKey()) {
+      return (settings.apiKey ?? "") + "(ENV)"
+    }
+    return settings.apiKey;
   }
 
   return (
@@ -49,7 +54,8 @@ export default function UserSettings({closeSettings} : {closeSettings:() => void
         <div>
           {/* Add info here to refer to GitHub for security specifics */}
           <label htmlFor="apikey-input">API Key</label>
-          <input id="apikey-input" type="text" value={settings.apiKey} onChange={handleAPIKeyChange}/>
+          <input id="apikey-input" type="text" value={APIKeyValue()} onChange={handleAPIKeyChange}
+                 disabled={!shouldUseLocalStorageForAPIKey()}/>
         </div>
         <div>
           {/* Add "default" button to switch back */}

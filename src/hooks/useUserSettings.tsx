@@ -3,6 +3,8 @@ import { LSProxy } from '@/lsProxy';
 import { Constants } from '@/constants';
 import { UserSettings, Theme } from '@/types';
 
+const ENV_APIKEY = import.meta.env.VITE_OPENAI_API_KEY;
+
 
 /*********************************************
  * Context
@@ -33,13 +35,18 @@ function UserSettingsProvider({children} : {children: React.ReactNode}) {
 
 function initialUserSettings() {
   const settings = LSProxy.getUserSettings();
-  if (settings) return settings;
+  if (settings) {
+    if (shouldUseLocalStorageForAPIKey()) {
+      settings.apiKey = ENV_APIKEY;
+    }
+    return settings;
+  }
 
   return {
     theme: "LIGHT" as Theme,
     model: Constants.GPT_3_5,
     systemMessage: Constants.DEFAULT_SYS_MSG,
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    apiKey: ENV_APIKEY,
   }
 }
 
@@ -68,6 +75,8 @@ function userSettingsReducer(state: UserSettings, action: UserSettingsDispatchAc
       return newState;
     }
     case 'set-api-key': {
+      if (!shouldUseLocalStorageForAPIKey()) return state;
+
       const newState = {...state, apiKey: action.apiKey};
       LSProxy.setUserSettings(newState);
       return newState;
@@ -114,8 +123,18 @@ function initialDispatch(action: UserSettingsDispatchAction) {
 }
 
 
+/*********************************************
+ * Misc
+ ********************************************/
+
+function shouldUseLocalStorageForAPIKey() {
+  return ENV_APIKEY === undefined;
+}
+
+
 export {
   useUserSettings, useUserSettingsDispatch,
   UserSettingsProvider,
   userSettingsDispatchFunctions,
+  shouldUseLocalStorageForAPIKey,
 }
