@@ -124,8 +124,6 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
       const chat = getSavedChatForAction(action.chatId);
       if (!chat) return state;
 
-      console.log(chat);
-
       const newMessages = chat.messages.map((message) => {
         if (message.id === action.messageId) {
           if (action.message) {
@@ -138,8 +136,6 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
         }
         return message;
       })
-
-      console.log(newMessages);
 
       const newChat = {...chat, messages: newMessages}
       return state.id ===  action.chatId ? newChat : state;
