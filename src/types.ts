@@ -32,6 +32,7 @@ export interface ChatMessage {
   id: number,
   role: Role;
   content: string;
+  partial?: string; // when reading from stream.
   tokens? : number;
 }
 

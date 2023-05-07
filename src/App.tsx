@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { sendChat, getModels } from '@/api/chat';
+import { sendChatStream, getModels } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
@@ -73,7 +73,7 @@ export default function App() {
   const editCallback = useCallback(async(messageId: number, content: string) => {
     const sentChatId = currentChat.id;
     const editedMessages = getMessagesAfterEdit(messageId, content);
-    chat.editMessage(editedMessages);
+    chat.editMessages(editedMessages);
     const chatTokens = editedMessages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
 
     await sendAndReceiveFromGPT(sentChatId, messageId, editedMessages, chatTokens);
@@ -93,21 +93,42 @@ export default function App() {
   }
 
   async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[], chatTokens?: number) {
-    const res = await sendChat(settings.apiKey ?? "", settings.model, messages);
+    let added = false;
+    const resMsgId = messageId + 1;
 
+    function addMsg(content: string) {
+      const msg = {
+        id: resMsgId,
+        role: "assistant" as Role,
+        content: content,
+      }
+      chat.addMessage(sentChatId, msg);
+    }
+
+    function readCB(partial: string) {
+      if (!added) {
+        addMsg("");
+        added = true;
+      }
+      chat.setPartialMessage(sentChatId, messageId + 1, partial);
+    }
+
+    const res = await sendChatStream(settings.apiKey ?? "", settings.model, messages, readCB);
     if (res.status === "SUCCESS") {
-      const gptResponse = res.data?.choices?.[0]?.message;
+      const gptResponse = res.data;
       if (gptResponse) {
-        gptResponse.id = messageId + 1;
-        chat.addMessage(sentChatId, gptResponse);
-
+        if (!added) {
+          addMsg(gptResponse);
+        } else {
+          chat.editMessage(sentChatId, resMsgId, gptResponse);
+        }
         chatTokens = chatTokens ?? 0;
         const usage = res.data?.usage;
         const promptTokens = usage?.prompt_tokens ?? 0;
         const completionTokens = usage?.completion_tokens ?? 0;
         const currentMessageTokens = promptTokens - chatTokens;
         chat.setMessageTokens(sentChatId, messageId, currentMessageTokens);
-        chat.setMessageTokens(sentChatId, messageId + 1, completionTokens);
+        chat.setMessageTokens(sentChatId, resMsgId, completionTokens);
         chat.setChatTokens(sentChatId, chatTokens + promptTokens + completionTokens);
       }
       chat.setStatus(sentChatId, "READY");
@@ -117,6 +138,7 @@ export default function App() {
       const errMsg = errData.error ? errData.error.message : errData;
       chat.setErrorMessage(sentChatId, String(errMsg));
     }
+    chat.setPartialMessage(sentChatId, resMsgId, "");
   }
 
   function initialChatId() {

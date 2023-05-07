@@ -1,4 +1,3 @@
-import { Constants } from '@/constants';
 import { APIError } from './apiError';
 import { ChatMessage } from '@/types';
 
@@ -8,11 +7,134 @@ const COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 const USE_MOCK_API = false;
 const USE_MOCK_API_ERROR = false;
 
-
 /*********************************************
  * Chat Completion
  ********************************************/
 
+const utf8Decoder = new TextDecoder('utf8');
+
+// Stream implementation of OpenAI chat completions.
+async function sendChatStream(apiKey: string,
+                              model: string,
+                              messages: ChatMessage[],
+                              streamReadCB?: (stream: string) => void) {
+  if (USE_MOCK_API) return mockSendChat(model, messages);
+  if (USE_MOCK_API_ERROR) return mockSendChatError(model, messages);
+
+  const toSendMessages = messages.map((message) => {
+    return {
+      role: message.role,
+      content: message.content
+    }
+  });
+
+  const body = {
+    model: model,
+    messages: toSendMessages,
+    stream: true,
+  }
+
+  try {
+    const response = await fetch(COMPLETIONS_URL, {
+      method: "POST",
+      headers: header(apiKey),
+      body: JSON.stringify(body),
+    })
+
+  if (!response.ok) throw new APIError(`OpenAI HTTP status code: ${response.status}`, response);
+
+  const reader = response.body?.getReader();
+  if (reader) {
+    let decodedRes = "";
+    decodedRes = await readResponse(reader, decodedRes, streamReadCB);
+    return {
+      status: "SUCCESS",
+      data: decodedRes,
+    }
+  } else {
+    console.error("No reader from body??");
+    return {
+      status: "ERROR",
+      data: "Couldn't read stream from request!"
+    }
+  }
+
+  } catch (error: any) {
+    let res = error.message ?? error;
+    if (error.response) {
+      try {
+        const reader = error.response.body?.getReader();
+        if (reader) {
+          let decodedRes = "";
+          decodedRes = await readErrorResponse(reader, decodedRes);
+          if (decodedRes) res = decodedRes;
+        }
+      } catch(error: any) {
+        console.error("Error reading error response stream");
+      }
+    }
+    return {
+      status: "ERROR",
+      data: res,
+    }
+  }
+}
+
+/**
+ * Stream handling methods mainly taken from multiple solutions in this thread:
+ * https://github.com/openai/openai-node/issues/18
+ */
+const decodeResponse = (response?: Uint8Array) => {
+  if (!response) return "";
+
+  // Look for multiple matches of:
+  // - "delta:<any number of spaces>
+  // - GROUP each: {<any char(non-greedy)>content:<any number of spaces><any char(non-greedy)>
+  // So each match will be something like below:
+  // - { content: <msg> }
+  const pattern = /"delta":\s*({.*?"content":\s*".*?"})/g;
+  const decodedText = utf8Decoder.decode(response);
+  const matches: string[] = [];
+
+  let match = pattern.exec(decodedText);
+  while (match !== null) {
+    matches.push(JSON.parse(match[1]).content)
+    match = pattern.exec(decodedText);
+  }
+
+  return matches.join('')
+}
+
+async function readResponse(reader: ReadableStreamDefaultReader,
+                            streamS: string,
+                            onRead?: (stream: string) => void) : Promise<string> {
+  const { value, done } = await reader.read();
+  if (done) return streamS;
+
+  const decoded = decodeResponse(value);
+  if (decoded) {
+    streamS += decoded;
+    if (onRead) onRead(streamS);
+  }
+
+  return await readResponse(reader, streamS, onRead);
+}
+
+async function readErrorResponse(reader: ReadableStreamDefaultReader, streamS: string) : Promise<string> {
+  const { value, done } = await reader.read();
+  if (done) {
+    const msg = JSON.parse(streamS).error?.message;
+    return msg ? `Error: ${msg}` : streamS;
+  }
+
+  const decoded = utf8Decoder.decode(value);
+  if (decoded) streamS += decoded;
+
+  return readErrorResponse(reader, streamS);
+}
+
+
+// Non-stream implementation. Unused but kept.
 async function sendChat(apiKey: string, model: string, messages: ChatMessage[]) {
   if (USE_MOCK_API) return mockSendChat(model, messages);
   if (USE_MOCK_API_ERROR) return mockSendChatError(model, messages);
@@ -92,13 +214,13 @@ async function test(apiKey: string, model: string) {
   }
 }
 
-
 function header(apiKey: string) {
   return {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${apiKey}`
   }
 }
+
 
 /*********************************************
  * Other
@@ -190,7 +312,7 @@ async function mockSendChatError(model: string, messages: ChatMessage[]) {
 
 
 export {
-  sendChat,
+  sendChat, sendChatStream,
   test,
   getModels,
 }

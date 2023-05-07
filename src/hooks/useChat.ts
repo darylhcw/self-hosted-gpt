@@ -16,6 +16,8 @@ export type ChatDispatchAction =
   | {type: "new-chat", id: number, sysMsg: string}
   | {type: "add-message", chatId: number, message: ChatMessage, createdAt: number}
   | {type: "edit-messages", messages: ChatMessage[]}
+  | {type: "edit-message", chatId: number, messageId: number, message: string, setAt: number}
+  | {type: "set-partial-message", chatId: number, messageId: number, message: string, setAt: number}
   | {type: "set-chat", id: number}
   | {type: "set-status", chatId: number, status: ChatStatus, setAt: number}
   | {type: "set-old"}
@@ -52,6 +54,23 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
       const newState = {...state, messages: action.messages}
       saveChatToLocalStorage(newState);
       return newState;
+    }
+
+    case 'edit-message': {
+      if (state.createdAt > action.setAt) return state;
+
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
+
+      const newMessages = chat.messages.map((message) => {
+        if (message.id === action.messageId) {
+          return {...message, content: action.message};
+        }
+        return message;
+      })
+
+      const newChat = {...chat, messages: newMessages}
+      return state.id ===  action.chatId ? newChat : state;
     }
 
     case 'set-status': {
@@ -96,6 +115,33 @@ const chatReducer = (state: Chat, action: ChatDispatchAction) => {
       if (!chat) return state;
 
       const newChat = {...chat, latestError: action.message}
+      return state.id ===  action.chatId ? newChat : state;
+    }
+
+    case 'set-partial-message': {
+      if (state.createdAt > action.setAt) return state;
+
+      const chat = getSavedChatForAction(action.chatId);
+      if (!chat) return state;
+
+      console.log(chat);
+
+      const newMessages = chat.messages.map((message) => {
+        if (message.id === action.messageId) {
+          if (action.message) {
+            return {...message, partial: action.message};
+          } else {
+            const res = {...message};
+            delete res.partial;
+            return res;
+          }
+        }
+        return message;
+      })
+
+      console.log(newMessages);
+
+      const newChat = {...chat, messages: newMessages}
       return state.id ===  action.chatId ? newChat : state;
     }
 
@@ -168,8 +214,16 @@ function useChat(id : number | null) {
     dispatch({ type: 'add-message', chatId: chatId, message: message, createdAt: Date.now() });
   }, [dispatch]);
 
-  const editMessage = useCallback((messages: ChatMessage[]) => {
+  const editMessages = useCallback((messages: ChatMessage[]) => {
     dispatch({ type: 'edit-messages', messages: messages }) ;
+  }, [dispatch]);
+
+  const editMessage = useCallback((chatId: number, messageId: number, message: string) => {
+    dispatch({ type: 'edit-message', chatId: chatId, messageId: messageId, message: message, setAt: Date.now()}) ;
+  }, [dispatch]);
+
+  const setPartialMessage = useCallback((chatId: number, messageId: number, message: string) => {
+    dispatch( {type: 'set-partial-message', chatId: chatId, messageId: messageId, message: message, setAt: Date.now() });
   }, [dispatch]);
 
   const setCurrentChat = useCallback((id: number) => {
@@ -217,7 +271,9 @@ function useChat(id : number | null) {
     dispatch: dispatch,
     newChat: newChat,
     addMessage: addMessage,
+    editMessages: editMessages,
     editMessage: editMessage,
+    setPartialMessage: setPartialMessage,
     setStatus: setStatus,
     setOld: setOld,
     setCurrentChat: setCurrentChat,

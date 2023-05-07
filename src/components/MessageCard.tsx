@@ -26,7 +26,7 @@ export default function MessageCard({ theme, message, editMessage} : MessageCard
       <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
                      components={markdownComps}
                      linkTarget="_new">
-        {message.content}
+        {message.partial ? message.partial : message.content}
       </ReactMarkdown>
       <p>{`Tokens: ${message.tokens ?? "?"}`}</p>
       { message.role === "user" && <button onClick={editMessageCB}>EDIT</button> }
