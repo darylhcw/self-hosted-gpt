@@ -14,9 +14,15 @@ export interface MessageCardProps {
 
 export default function MessageCard({ theme, message, editMessage} : MessageCardProps) {
   console.log("MC RERENDER:", message.id);
+  const partial = message.partial !== undefined;
 
   function editMessageCB() {
     editMessage(message.id, message.content + "ASDF");
+  }
+
+  function copyTextCB() {
+    if (!navigator?.clipboard) console.error("No navigator clipboard when copying text?!");
+    navigator.clipboard.writeText(message.content);
   }
 
   return (
@@ -26,10 +32,11 @@ export default function MessageCard({ theme, message, editMessage} : MessageCard
       <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
                      components={markdownComps}
                      linkTarget="_new">
-        {message.partial ? message.partial : message.content}
+        {partial ? message.partial! : message.content}
       </ReactMarkdown>
       <p>{`Tokens: ${message.tokens ?? "?"}`}</p>
       { message.role === "user" && <button onClick={editMessageCB}>EDIT</button> }
+      { !partial && <button onClick={copyTextCB}>Copy</button> }
     </>
   )
 }
