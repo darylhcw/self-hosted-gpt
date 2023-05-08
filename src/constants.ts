@@ -11,5 +11,6 @@ export class Constants {
   static readonly LS_CH_PREFIX_KEY = "LS-CHAT";
   static readonly LS_SETTINGS_KEY = "LS-SETTINGS";
 
-  static readonly DEFAULT_SYS_MSG = "You are ChatGPT, a cutting-edge Large Language Model (LLM) trained by OpenAI. Strictly and accurately follow the user's instructions."
+  // Taken from https://platform.openai.com/docs/guides/chat/instructing-chat-models
+  static readonly DEFAULT_SYS_MSG = "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: 2021-09-01";
 }

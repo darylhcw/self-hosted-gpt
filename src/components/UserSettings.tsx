@@ -9,7 +9,12 @@ import {
 import { Theme } from '@/types';
 import styles from './UserSettings.module.css';
 
-export default function UserSettings({closeSettings} : {closeSettings:() => void}) {
+interface UserSettingsProps {
+  refreshNewChat: () => void;
+  closeSettings: () => void;
+}
+
+export default function UserSettings({closeSettings, refreshNewChat} : UserSettingsProps) {
   const settings = useUserSettings();
   const dispatchSettings = useUserSettingsDispatch();
   const { setTheme, setModel, setAPIKey, setSystemMessage } = userSettingsDispatchFunctions(dispatchSettings);
@@ -30,6 +35,7 @@ export default function UserSettings({closeSettings} : {closeSettings:() => void
 
   function handleSysMsgChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setSystemMessage(e.target.value);
+    refreshNewChat();
   }
 
   function APIKeyValue() {

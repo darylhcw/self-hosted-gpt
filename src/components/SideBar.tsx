@@ -9,6 +9,7 @@ interface SideBarProps {
   coll : ChatCollection;
   setCurrentChat: (id: number) => void;
   addNewChat: () => void;
+  refreshNewChat: () => void;
   setChatTitle: (chatId: number, title: string) => void;
   deleteChat: (chatId: number) => void;
 }
@@ -17,6 +18,7 @@ export default function SideBar({
   coll,
   setCurrentChat,
   addNewChat,
+  refreshNewChat,
   setChatTitle,
   deleteChat,
 } : SideBarProps
@@ -26,7 +28,8 @@ export default function SideBar({
   return (
     <>
       {/* Modal: Layout independent of rest of content */}
-      { settingsOpen && <UserSettings closeSettings={() => setSettingsOpen(false)}/> }
+      { settingsOpen && <UserSettings refreshNewChat={refreshNewChat}
+                                      closeSettings={() => setSettingsOpen(false)}/> }
 
       <nav>
         <button onClick={addNewChat}>New Chat</button>
@@ -34,9 +37,9 @@ export default function SideBar({
           {coll.map((chat) =>
             <li key={chat.id}>
               <MemoedSideBarChat header={chat}
-                                setCurrentChat={setCurrentChat}
-                                setChatTitle={setChatTitle}
-                                deleteChat={deleteChat}/>
+                                 setCurrentChat={setCurrentChat}
+                                 setChatTitle={setChatTitle}
+                                 deleteChat={deleteChat}/>
             </li>
           )}
         </ol>

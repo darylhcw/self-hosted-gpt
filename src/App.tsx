@@ -32,6 +32,17 @@ export default function App() {
     chat.newChat(id);
   }
 
+  // Used when changing system message on new chat.
+  function refreshNewChat() {
+    if (!currentChat.new) return;
+
+    let id = 1;
+    const lastChat = collection.at(-1);
+    if (lastChat) id = lastChat.id + 1;
+
+    chat.newChat(id);
+  }
+
   const setCurrentChat = useCallback((id: number) => {
     if (id !== currentChat.id) {
       chat.setCurrentChat(id);
@@ -177,6 +188,7 @@ export default function App() {
     <>
       <SideBar coll={collection}
                addNewChat={addNewChat}
+               refreshNewChat={refreshNewChat}
                setCurrentChat={setCurrentChat}
                setChatTitle={chatColl.setChatTitle}
                deleteChat={deleteChat}/>
