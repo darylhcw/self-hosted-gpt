@@ -1,6 +1,7 @@
 import { useReducer, useCallback } from 'react';
 import { useUserSettings } from './useUserSettings';
 import { LSProxy } from '@/lsProxy';
+import { countTokens } from '@/tokenCounter';
 import { Constants } from '@/constants';
 import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
 
@@ -314,7 +315,10 @@ function defaultChat(id: number, sysMsg?: string) : Chat {
   // Empty string should give null here!
   const firstMsg = sysMsg ? initialSystemMessage(sysMsg) : null;
   const messages = [];
-  if (firstMsg) messages.push(firstMsg);
+  if (firstMsg) {
+    firstMsg.tokens = countTokens(firstMsg);
+    messages.push(firstMsg);
+  }
 
   return {
     id: id,
@@ -322,6 +326,7 @@ function defaultChat(id: number, sysMsg?: string) : Chat {
     status: "READY" as ChatStatus,
     createdAt: Date.now(),
     new: true,
+    tokens: firstMsg?.tokens ?? 0,
   }
 }
 

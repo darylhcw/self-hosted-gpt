@@ -7,6 +7,7 @@ import { useUserSettings } from './hooks/useUserSettings';
 import { useChatCollection } from './hooks/useChatCollection';
 import { useChat } from './hooks/useChat';
 import { ChatMessage, Role } from './types';
+import { countTokens } from '@/tokenCounter';
 import { Constants } from './constants';
 import styles from './App.module.css';
 
@@ -17,6 +18,9 @@ export default function App() {
 
   const chat = useChat(initialChatId());
   const currentChat = chat.chat;
+
+  const sysMsg = currentChat.messages[0]?.role == "system" ? currentChat.messages[0] : null;
+  const sysMessageTokens = sysMsg ? countTokens(sysMsg) : 0;
 
   const settings = useUserSettings();
 
@@ -107,18 +111,18 @@ export default function App() {
     let added = false;
     const resMsgId = messageId + 1;
 
-    function addMsg(content: string) {
+    function resMsg(content: string) {
       const msg = {
         id: resMsgId,
         role: "assistant" as Role,
         content: content,
       }
-      chat.addMessage(sentChatId, msg);
+      return msg;
     }
 
     function readCB(partial: string) {
       if (!added) {
-        addMsg("");
+        chat.addMessage(sentChatId, resMsg(""));
         added = true;
       }
       chat.setPartialMessage(sentChatId, messageId + 1, partial);
@@ -129,16 +133,17 @@ export default function App() {
       const gptResponse = res.data;
       if (gptResponse) {
         if (!added) {
-          addMsg(gptResponse);
+          chat.addMessage(sentChatId, resMsg(gptResponse));
         } else {
           chat.editMessage(sentChatId, resMsgId, gptResponse);
         }
+
         chatTokens = chatTokens ?? 0;
-        const usage = res.data?.usage;
-        const promptTokens = usage?.prompt_tokens ?? 0;
-        const completionTokens = usage?.completion_tokens ?? 0;
-        const currentMessageTokens = promptTokens - chatTokens;
-        chat.setMessageTokens(sentChatId, messageId, currentMessageTokens);
+        const sent = messages.at(-1);
+        const promptTokens = sent ? countTokens(sent) : 0;
+        const completionTokens = countTokens(resMsg(gptResponse));
+
+        chat.setMessageTokens(sentChatId, messageId, promptTokens);
         chat.setMessageTokens(sentChatId, resMsgId, completionTokens);
         chat.setChatTokens(sentChatId, chatTokens + promptTokens + completionTokens);
       }
@@ -197,6 +202,7 @@ export default function App() {
         <button onClick={() => {setA(a+1)}}>RENDER APP</button>
         <button onClick={() => {getModels(settings.apiKey ?? "")}}>GET MODELS (CONSOLE)</button>
         { currentChat.tokens && overContextLimit(settings.model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
+        <p>{`System message tokens: ${sysMessageTokens}`}</p>
         <p>{`Total tokens: ${currentChat.tokens ?? "0"}`}</p>
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
