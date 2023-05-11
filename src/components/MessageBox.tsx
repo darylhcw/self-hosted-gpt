@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { ChatStatus, Role } from '@/types';
 import styles from './MessageBox.module.css'
 
@@ -21,6 +22,10 @@ export default function MessageBox({
   errMsg
 } : MessageBoxProps
 ) {
+  const settings = useUserSettings();
+  const darkTheme = settings.theme === "DARK";
+  const themeClass = darkTheme ? styles["dark-theme"] : "";
+
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -77,29 +82,48 @@ export default function MessageBox({
     )
   }
 
-  function isResend() {
-    return status === "ERROR" && lastSender === "user";
+  function allowSend() {
+    return status !== "ERROR" && lastSender !== "user";
   }
 
-  return (
-    <>
-      { errMsg && errorMessageBox() }
-      <textarea
-        className={styles.txtArea}
-        ref={textAreaRef}
-        onChange={handleChange}
-        onKeyDown={handleKeyPress}
-        value={message}
-        placeholder="Send a message."
-        rows={1}
-      />
+  function sendIcon() {
+    if (status === "SENDING") {
+      return status === "SENDING" ? "send-wait-light.svg" : "send-wait.svg";
+    } else {
+      return darkTheme ? "send-light.svg" : "send.svg";
+    }
+  }
 
-      { isResend()
-          ? <button onClick={debouncedResend}>Resend Message</button>
-          : <button onClick={debouncedSend}>Send</button>
+
+  return (
+    <div className={`${styles.container} ${themeClass}`}>
+      { errMsg && errorMessageBox() }
+
+      { lastSender === "assistant"
+          &&  <button onClick={debouncedResend} className={`${styles.regenerate} ${themeClass}`}>
+                <img src={darkTheme ? "regenerate-light.svg" : "regenerate.svg"}/>
+                Regenerate Response
+              </button>
       }
-      <p>{status}</p>
-      { isSending && <p>SENDING...</p>}
-    </>
+
+      <div className={styles["send-container"]}>
+        { <button onClick={debouncedSend}
+                  className={styles.send}
+                  disabled={!allowSend()}>
+            <img src={sendIcon()} alt="send"/>
+          </button>
+        }
+        <textarea className={`${styles.txtArea} ${themeClass}`}
+                  ref={textAreaRef}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyPress}
+                  value={message}
+                  placeholder="Send a message."
+                  rows={1}
+        />
+      </div>
+      {/* <p>{status}</p> */}
+      {/* { isSending && <p>SENDING...</p>} */}
+    </div>
   );
 };

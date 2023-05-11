@@ -1,3 +1,40 @@
-.container, button {
-  width: 200px;
+.container {
+  display: flex;
+  padding: 0.6rem 0rem 0.6rem 0.3rem;
+}
+
+.chat {
+  margin-right: 0.5rem;;
+
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+
+  color: var(--text-white);
+
+  overflow: hidden;
+}
+.chat img {
+  width: 18px;
+  height: 18px;
+  margin-right: 1rem;
+}
+.chat h2 {
+  text-align: left;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+.chat p {
+  color: var(--text-grey);
+}
+.chat-name {
+  min-width: 0;
+}
+
+.action-button {
+  padding: 6px 3px;
+}
+.action-button img {
+  width: 18px;
+  height: 18px;
 }

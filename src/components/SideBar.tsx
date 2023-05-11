@@ -2,7 +2,7 @@ import { useState, memo } from 'react';
 import UserSettings from './UserSettings';
 import SideBarChat from '@/components/SideBarChat';
 import { ChatCollection } from '@/types';
-import style from './SideBar.module.css'
+import styles from './SideBar.module.css'
 
 
 interface SideBarProps {
@@ -31,9 +31,17 @@ export default function SideBar({
       { settingsOpen && <UserSettings refreshNewChat={refreshNewChat}
                                       closeSettings={() => setSettingsOpen(false)}/> }
 
-      <nav>
-        <button onClick={addNewChat}>New Chat</button>
-        <ol>
+      <nav className={styles.container}>
+        <div className={styles["top-buttons"]}>
+          <button onClick={addNewChat} className={styles.new}>
+            <pre>+  New Chat</pre>
+          </button>
+          <button onClick={() => setSettingsOpen(!settingsOpen)}
+                  className={styles.settings}>
+            <img src="settings-light.svg" alt="settings"/>
+          </button>
+        </div>
+        <ol className={styles["chat-container"]}>
           {coll.map((chat) =>
             <li key={chat.id}>
               <MemoedSideBarChat header={chat}
@@ -43,7 +51,6 @@ export default function SideBar({
             </li>
           )}
         </ol>
-      <button onClick={() => setSettingsOpen(!settingsOpen)}>Settings</button>
       </nav>
     </>
   )

@@ -18,16 +18,21 @@ export default function SideBarChat({
 } : SideBarChatProps) {
   return (
     <div className={styles.container}>
-      <button onClick={() => setCurrentChat(header.id)}>
-        <img src="chat-bubble.svg"/>
-        {header.title}
-        <p>{header.preview}</p>
+      <button onClick={() => setCurrentChat(header.id)}
+              className={styles.chat}>
+        <img src="chat-bubble-light.svg"/>
+        <div className={styles["chat-name"]}>
+          <h2 className="ellipsis-text">{header.title}</h2>
+          <p className="ellipsis-text">{header.preview}</p>
+        </div>
       </button>
-      <button onClick={() => setChatTitle(header.id, test(header.title))}>
-        <img src="edit.svg"/>
+      <button onClick={() => setChatTitle(header.id, test(header.title))}
+              className={styles["action-button"]}>
+        <img src="edit-light.svg"/>
       </button>
-      <button onClick={() => deleteChat(header.id)}>
-        <img src="trash.svg"/>
+      <button onClick={() => deleteChat(header.id)}
+              className={styles["action-button"]}>
+        <img src="trash-light.svg"/>
       </button>
     </div>
   )

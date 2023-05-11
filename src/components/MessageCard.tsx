@@ -15,6 +15,7 @@ export interface MessageCardProps {
 export default function MessageCard({ theme, message, editMessage} : MessageCardProps) {
   console.log("MC RERENDER:", message.id);
   const partial = message.partial !== undefined;
+  const darkTheme = theme == "DARK"
 
   function editMessageCB() {
     editMessage(message.id, message.content + "ASDF");
@@ -26,18 +27,35 @@ export default function MessageCard({ theme, message, editMessage} : MessageCard
   }
 
   return (
-    <>
-      <p>{theme}</p>
-      <p>{message.role}</p>
-      <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
-                     components={markdownComps}
-                     linkTarget="_new">
-        {partial ? message.partial! : message.content}
-      </ReactMarkdown>
-      <p>{`Tokens: ${message.tokens ?? "?"}`}</p>
-      { message.role === "user" && <button onClick={editMessageCB}>EDIT</button> }
-      { !partial && <button onClick={copyTextCB}>Copy</button> }
-    </>
+    <div className={`${styles.container} ${message.role == "assistant" ? styles["assistant-bg"] : ""} ${darkTheme ? styles["dark-theme"] : ""}`}>
+      <div className={styles["container-inner"]}>
+        <img src={ message.role == "assistant"
+                    ? (darkTheme ? "robot-light.svg" : "robot.svg")
+                    : (darkTheme ? "user-light.svg" : "user.svg")
+                 }
+             className={styles.icon}
+             alt={message.role}/>
+
+        <div className={styles["message-text"]}>
+          <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
+                        components={markdownComps}
+                        linkTarget="_new">
+            {partial ? message.partial! : message.content}
+          </ReactMarkdown>
+          <p className={styles.tokens}>{`Tokens: ${message.tokens ?? "?"}`}</p>
+        </div>
+        <div className={styles["buttons-container"]}>
+        { message.role === "user"
+            && <button onClick={editMessageCB} className={styles["action-button"]}>
+                <img src={`edit${darkTheme ? "-light" : ""}.svg`} alt="edit"/>
+               </button>
+        }
+          <button onClick={copyTextCB} className={styles["action-button"]}>
+            <img src={`clipboard${darkTheme ? "-light" : ""}.svg`} alt="copy"/>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

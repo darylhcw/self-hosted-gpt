@@ -1,0 +1,41 @@
+
+.container {
+  width: var(--sidebar-w);
+  padding: 0.5rem;
+  background: var(--grey-dark-3);
+}
+
+.top-buttons {
+  width: 100%;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.new {
+  padding: 0.8rem;
+  flex-grow: 1;
+
+  text-align: left;
+  color: var(--text-white);
+  font-size: 0.875rem;
+
+  background: var(--grey-dark-3);
+  border: 1px solid var(--grey-light-transparent-1);
+  border-radius: 6px;
+}
+
+.settings {
+  padding: 0.8rem;
+  margin-left: 0.3rem;
+  border: 1px solid var(--grey-light-transparent-1);
+  border-radius: 6px;
+}
+.settings img {
+  height: 18px;
+  width: 18px;
+}
+
+.chat-container {
+  /* display: flex; */
+  /* flex-direction */
+}

@@ -1,6 +1,22 @@
 :root {
   --large-screen: 2560px;
-  --small-screen: 720px;
+  --small-screen: 800px;
+  --sidebar-w: 320px;
+  --messages-max-w: 800px;
+
+  --text-white: #ECECF1;
+  --text-grey: #8E8E94;
+  /* E5E5E5 */
+  --grey-light-transparent-1: rgba(255, 255, 255, 0.2);
+
+  --grey-light-1: #F7F7F7;
+  --grey-light-2: #CACACA;
+  --grey-dark-1: #444654;
+  --grey-dark-2: #343541;
+  --grey-dark-3:#202123;
+
+  --grey-light-1-alpha192: #F7F7F7C0;
+  --grey-dark-2-alpha192: #343541C0;
 }
 
 html,
@@ -14,4 +30,22 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+h1, h2, h3, h4, h5 {
+  padding: 0;
+  margin: 0;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* For elems in flex item, need overflow: hidden on parent! */
+.ellipsis-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

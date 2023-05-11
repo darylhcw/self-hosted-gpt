@@ -188,14 +188,14 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className={styles.wrapper}>
       <SideBar coll={collection}
                addNewChat={addNewChat}
                refreshNewChat={refreshNewChat}
                setCurrentChat={setCurrentChat}
                setChatTitle={chatColl.setChatTitle}
                deleteChat={deleteChat}/>
-      <main className={styles.main}>
+      <main className={`${styles.main} ${settings.theme == "DARK" ? styles["bg-dark"] : ""}`}>
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
         { currentChat.tokens && overContextLimit(settings.model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
         <p>{`System message tokens: ${sysMessageTokens}`}</p>
@@ -209,7 +209,7 @@ export default function App() {
                       errMsg={currentChat.latestError ?? undefined}/>
         </div>
       </main>
-    </>
+    </div>
   )
 }
 
