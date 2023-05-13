@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { sendChatStream, getModels } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
@@ -23,8 +23,6 @@ export default function App() {
   const sysMessageTokens = sysMsg ? countTokens(sysMsg) : 0;
 
   const settings = useUserSettings();
-
-  const [a, setA] = useState(1);
 
   function addNewChat() {
     if (currentChat.new) return;
@@ -199,11 +197,10 @@ export default function App() {
                deleteChat={deleteChat}/>
       <main className={styles.main}>
         <ChatMessages chat={currentChat} editMessage={editCallback}/>
-        <button onClick={() => {setA(a+1)}}>RENDER APP</button>
-        <button onClick={() => {getModels(settings.apiKey ?? "")}}>GET MODELS (CONSOLE)</button>
         { currentChat.tokens && overContextLimit(settings.model, currentChat.tokens) && <p>WARNING! OVER CONTEXT LIMIT</p>}
         <p>{`System message tokens: ${sysMessageTokens}`}</p>
         <p>{`Total tokens: ${currentChat.tokens ?? "0"}`}</p>
+
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
                       sendCB={sendCallback}
