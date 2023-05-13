@@ -291,7 +291,7 @@ async function mockSendChat(model: string, messages: ChatMessage[]) {
 
   return {
     status: "SUCCESS",
-    data: getFakeCompletionResponse(model, lastMessage),
+    data: `MOCK_REPLY: ${lastMessage}`,
   }
 }
 
@@ -300,7 +300,7 @@ async function mockSendChatError(model: string, messages: ChatMessage[]) {
   await new Promise(r => setTimeout(r, TIMEOUT_LENGTH));
   const response = {
     error: {
-      message: "MOCK ERROR",
+      message: "MOCK ERROR - Very long random error message/failure oh no something brokies",
     }
   }
 
