@@ -36,9 +36,7 @@ function UserSettingsProvider({children} : {children: React.ReactNode}) {
 function initialUserSettings() {
   const settings = LSProxy.getUserSettings();
   if (settings) {
-    if (shouldUseLocalStorageForAPIKey()) {
-      settings.apiKey = ENV_APIKEY;
-    }
+    settings.apiKey = ENV_APIKEY ?? "";
     return settings;
   }
 
@@ -75,8 +73,6 @@ function userSettingsReducer(state: UserSettings, action: UserSettingsDispatchAc
       return newState;
     }
     case 'set-api-key': {
-      if (!shouldUseLocalStorageForAPIKey()) return state;
-
       const newState = {...state, apiKey: action.apiKey};
       LSProxy.setUserSettings(newState);
       return newState;
@@ -127,14 +123,8 @@ function initialDispatch(action: UserSettingsDispatchAction) {
  * Misc
  ********************************************/
 
-function shouldUseLocalStorageForAPIKey() {
-  return ENV_APIKEY === undefined;
-}
-
-
 export {
   useUserSettings, useUserSettingsDispatch,
   UserSettingsProvider,
   userSettingsDispatchFunctions,
-  shouldUseLocalStorageForAPIKey,
 }

@@ -37,7 +37,7 @@ export default function MessageBox({
     if (txtArea) {
       // We need to reset the height momentarily to get the correct scrollHeight for the textarea
       txtArea.style.height = "0px";
-      const scrollHeight = txtArea.scrollHeight;
+      const scrollHeight = txtArea.scrollHeight + 2;
       txtArea.style.height = scrollHeight + "px";
     }
   }, [textAreaRef, message]);
@@ -107,12 +107,6 @@ export default function MessageBox({
       }
 
       <div className={styles["send-container"]}>
-        { <button onClick={debouncedSend}
-                  className={styles.send}
-                  disabled={!allowSend()}>
-            <img src={sendIcon()} alt="send"/>
-          </button>
-        }
         <textarea className={`${styles.txtArea} ${themeClass}`}
                   ref={textAreaRef}
                   onChange={handleChange}
@@ -121,9 +115,12 @@ export default function MessageBox({
                   placeholder="Send a message."
                   rows={1}
         />
+        <button onClick={debouncedSend}
+                className={styles.send}
+                disabled={!allowSend()}>
+          <img src={sendIcon()} alt="send"/>
+        </button>
       </div>
-      {/* <p>{status}</p> */}
-      {/* { isSending && <p>SENDING...</p>} */}
     </div>
   );
 };

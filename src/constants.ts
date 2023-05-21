@@ -13,4 +13,6 @@ export class Constants {
 
   // Taken from https://platform.openai.com/docs/guides/chat/instructing-chat-models
   static readonly DEFAULT_SYS_MSG = "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: 2021-09-01";
+
+  static readonly MODAL_MAIN_ELEM = "MAIN_WRAPPER";
 }

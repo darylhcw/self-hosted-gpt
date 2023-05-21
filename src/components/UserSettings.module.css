@@ -1,3 +1,183 @@
 .container {
+  padding: 1rem;
   background: white;
+  border: 1px solid var(--grey-light-2);
+  border-radius: 10px;
+}
+.container.dark {
+  color: var(--text-white);
+  background: var(--grey-dark-3);
+  border-color: var(--grey-light-transparent-1);
+}
+.container h2 {
+  font-weight: 500;
+}
+
+.hline {
+  margin: 0.5rem 0;
+  width: 100%;
+  border-color: var(--grey-light-3);
+}
+
+.button {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid var(--grey-light-2);
+  border-radius: var(--settings-btn-radius);
+}
+.button.dark {
+  color: var(--text-white);
+  border-color: var(--grey-light-3);
+}
+.button:focus {
+  outline: var(--settings-blue-focus-outline);
+}
+
+
+/* Mainly so the scrollbar is "inside"
+ * Add 2px padding so outlines show.
+ */
+.inner-container {
+  max-height: 90vh;
+  padding: 2px;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  row-gap: 0.7rem;
+
+  overflow: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.close-button.dark {
+  color: var(--text-white);
+}
+
+.theme-container {
+  display: flex;
+  align-items: center;
+}
+.toggle {
+  width: 56px;
+  height: 32px;
+  padding: 3px;
+  margin-left: 0.5rem;
+  margin-right: 0.25rem;
+
+  background: var(--grey-light-1);
+  border: 1px solid var(--grey-light-3);
+  border-radius: 20px;
+}
+.toggle.dark {
+  background: var(--grey-dark-2);
+}
+.toggle:focus {
+  outline: var(--settings-blue-focus-outline);
+}
+
+.inner-toggle {
+  width: 50%;
+  height: 100%;
+
+  background: white;
+  border: 1px solid var(--grey-light-3);
+  border-radius: 20px;
+
+  transition: transform 0.3s ease-out;
+}
+.dark .inner-toggle {
+  background: var(--grey-dark-3);
+  border-color: var(--grey-light-3);
+  transform: translateX(100%);
+}
+
+.model {
+  padding: 0.3rem;
+  margin-left: 0.5rem;
+  font-size: 1rem;
+  border-radius: var(--settings-btn-radius);
+  border-color: var(--grey-light-2);
+}
+.model.dark {
+  color: var(--text-white);
+  background: var(--grey-dark-2);
+  border-color: var(--grey-light-3);
+}
+.model:focus {
+  border-color: transparent;
+  outline: var(--settings-blue-focus-outline);
+}
+
+.apikey-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.apikey-container label {
+  margin-bottom: 0.25rem;
+}
+.apikey-container button {
+  margin-right: 1px;
+}
+
+.apikey-input {
+  padding: 0.3rem;
+  margin-bottom: 0.25rem;
+
+  font-size: 1rem;
+
+  border-radius: 0.2rem;
+  background: var(--grey-light-1);
+  border: 1px solid var(--grey-light-2);
+}
+.apikey-input.dark {
+  color: var(--text-white);
+  background: var(--grey-dark-2);
+  border-color: var(--grey-light-3);
+}
+.apikey-input.dark:focus {
+  outline: 1px solid white;
+}
+
+a:link.dark {
+  color: var(--link-text-dark-theme);
+}
+a:visited.dark {
+  color: var(--link-text-dark-theme-visited);
+}
+a:focus {
+  outline: var(--settings-blue-focus-outline);
+}
+
+.sysmsg-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sysmsg{
+  width: clamp(250px, 50rem, 90vw);
+  padding: 0.3rem;
+  margin: 0.25rem 0;
+
+  border-radius: 0.2rem;
+  background: var(--grey-light-1);
+  border-color: var(--grey-light-2);
+  resize: none;
+}
+.sysmsg.dark {
+  color: var(--text-white);
+  background: var(--grey-dark-2);
+  border-color: var(--grey-light-3);
+}
+.sysmsg.dark:focus {
+  outline: 1px solid white;
 }

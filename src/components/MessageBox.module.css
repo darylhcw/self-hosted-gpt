@@ -60,6 +60,8 @@
   border: 1px solid var(--grey-light-2);
   border-radius: 6px;
   box-shadow: 1px 1px 5px 1px var(--grey-light-2);
+
+  resize: none;
 }
 .txtArea.dark-theme {
   color: var(--text-grey);
@@ -76,6 +78,7 @@
 .send {
   position: absolute;
   right: 6px;
+  bottom: 5px;
   padding: 6px;
 }
 .send img {

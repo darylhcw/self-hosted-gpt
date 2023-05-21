@@ -188,7 +188,7 @@ export default function App() {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div id={Constants.MODAL_MAIN_ELEM} className={styles.wrapper}>
       <SideBar coll={collection}
                addNewChat={addNewChat}
                refreshNewChat={refreshNewChat}

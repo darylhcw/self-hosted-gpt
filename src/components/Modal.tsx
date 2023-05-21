@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Constants } from '@/constants';
 import styles from './Modal.module.css'
 
 // Ensure only one modal open at a time;
@@ -52,7 +53,7 @@ export default function Modal({children, closeModal} : ModalProps) {
  * - Prevent interaction with things outside of modal.
  *   = Extremely basic focus trap.
  */
-const FOCUSABLE = "input:not([disabled]), *[tabindex]";
+const FOCUSABLE = "button, input:not([disabled]), *[tabindex]";
 let focusRemoved : [Element, string | null][] = [] ;
 let lastFocus : Element | null;
 
@@ -62,7 +63,7 @@ function modalOpen() {
 
   document.body.style.overflow = "hidden";
   document.body.style.paddingRight = BODY_SCROLLBAR_WIDTH;
-  const main = document.querySelector('main');
+  const main = document.querySelector("#" + Constants.MODAL_MAIN_ELEM);
   if (!main) return;
 
   const focusableElements = main.querySelectorAll(FOCUSABLE);

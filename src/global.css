@@ -5,18 +5,26 @@
   --messages-max-w: 800px;
 
   --text-white: #ECECF1;
-  --text-grey: #8E8E94;
-  /* E5E5E5 */
+  --text-grey:  #8E8E94;
+  --text-grey-2: #CCCCCE;
+
+  --link-text-dark-theme: #8B8BF7;
+  --link-text-dark-theme-visited: #B297CA;
+
   --grey-light-transparent-1: rgba(255, 255, 255, 0.2);
 
   --grey-light-1: #F7F7F7;
   --grey-light-2: #CACACA;
+  --grey-light-3: #8E8E94;
   --grey-dark-1: #444654;
   --grey-dark-2: #343541;
   --grey-dark-3:#202123;
 
   --grey-light-1-alpha192: #F7F7F7C0;
   --grey-dark-2-alpha192: #343541C0;
+
+  --settings-btn-radius: 6px;
+  --settings-blue-focus-outline: 2px solid #2563eb;
 }
 
 html,
@@ -24,12 +32,16 @@ body {
   padding: 0;
   margin: 0;
   font-family: Lato, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: black;
 }
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+*:focus:not(:focus-visible) {
+  outline: none;
 }
 
 h1, h2, h3, h4, h5 {
