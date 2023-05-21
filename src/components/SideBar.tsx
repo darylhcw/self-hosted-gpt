@@ -34,7 +34,7 @@ export default function SideBar({
       <nav className={styles.container}>
         <div className={styles["top-buttons"]}>
           <button onClick={addNewChat} className={styles.new}>
-            <pre>+  New Chat</pre>
+            +    New Chat
           </button>
           <button onClick={() => setSettingsOpen(!settingsOpen)}
                   className={styles.settings}>

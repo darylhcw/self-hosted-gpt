@@ -68,8 +68,8 @@
   caret-color: var(--text-grey);
 
   background: var(--grey-dark-1);
-  border-color: var(--grey-dark-2);
-  box-shadow: 1px 1px 5px 1px var(--grey-dark-2);
+  border-color: var(--grey-light-transparent-1);
+  box-shadow: 1px 1px 5px 1px var(--grey-dark-3);
 }
 .txtArea:focus {
   outline: none;

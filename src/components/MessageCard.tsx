@@ -9,11 +9,11 @@ import styles from "./MessageCard.module.css";
 export interface MessageCardProps {
   theme: Theme;
   message: ChatMessage;
+  errMsg?: string;
   editMessage: (messageId: number, content: string) => void;
 }
 
-export default function MessageCard({ theme, message, editMessage} : MessageCardProps) {
-  console.log("MC RERENDER:", message.id);
+export default function MessageCard({ theme, message, errMsg, editMessage} : MessageCardProps) {
   const partial = message.partial !== undefined;
   const darkTheme = theme == "DARK"
 
@@ -37,11 +37,16 @@ export default function MessageCard({ theme, message, editMessage} : MessageCard
              alt={message.role}/>
 
         <div className={styles["message-text"]}>
-          <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
-                        components={markdownComps}
-                        linkTarget="_new">
-            {partial ? message.partial! : message.content}
-          </ReactMarkdown>
+          { errMsg
+            ? <p className={`${darkTheme ? styles["error-dark"] : styles.error}`}>
+                {errMsg}
+              </p>
+            : <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
+                             components={markdownComps}
+                             linkTarget="_new">
+                {partial ? message.partial! : message.content}
+              </ReactMarkdown>
+          }
           <p className={styles.tokens}>{`Tokens: ${message.tokens ?? "?"}`}</p>
         </div>
         <div>

@@ -73,6 +73,8 @@ async function sendChatStream(apiKey: string,
         console.error("Error reading error response stream");
       }
     }
+    console.error("Failed Send\n", res);
+
     return {
       status: "ERROR",
       data: res,

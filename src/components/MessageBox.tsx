@@ -9,17 +9,14 @@ interface MessageBoxProps {
   status: ChatStatus;
   sendCB: (message: string) => void;
   resendCB: () => void;
-  lastSender: Role | null;
-  errMsg?: string;
+  hasMsg : boolean;
 }
-
 
 export default function MessageBox({
   status,
   sendCB,
   resendCB,
-  lastSender,
-  errMsg
+  hasMsg,
 } : MessageBoxProps
 ) {
   const settings = useUserSettings();
@@ -56,7 +53,7 @@ export default function MessageBox({
   const sendMessage = useCallback(async () => {
     if (message.trim.length <= 0 ) {
       setIsSending(true);
-      const res = await sendCB(message);
+      sendCB(message);
       setMessage("");
       setIsSending(false);
     }
@@ -67,27 +64,23 @@ export default function MessageBox({
   const resendMessage = useCallback(async () => {
     if (message.trim.length <= 0 ) {
       setIsSending(true);
-      const res = await resendCB();
+      resendCB();
       setIsSending(false);
     }
   }, [resendCB, setIsSending]);
 
   const debouncedResend = useDebounce(resendMessage, 1000);
 
-  function errorMessageBox() {
-    return (
-      <div>
-        {errMsg}
-      </div>
-    )
+  function allowSend() {
+    return status !== "SENDING";
   }
 
-  function allowSend() {
-    return status !== "ERROR" && lastSender !== "user";
+  function allowResend() {
+    return allowSend() && hasMsg;
   }
 
   function sendIcon() {
-    if (status === "SENDING") {
+    if (status === "SENDING" || isSending) {
       return status === "SENDING" ? "send-wait-light.svg" : "send-wait.svg";
     } else {
       return darkTheme ? "send-light.svg" : "send.svg";
@@ -97,9 +90,7 @@ export default function MessageBox({
 
   return (
     <div className={`${styles.container} ${themeClass}`}>
-      { errMsg && errorMessageBox() }
-
-      { lastSender === "assistant"
+      { allowResend()
           &&  <button onClick={debouncedResend} className={`${styles.regenerate} ${themeClass}`}>
                 <img src={darkTheme ? "regenerate-light.svg" : "regenerate.svg"}/>
                 Regenerate Response
@@ -115,7 +106,7 @@ export default function MessageBox({
                   placeholder="Send a message."
                   rows={1}
         />
-        <button onClick={debouncedSend}
+        <button onClick={status == "ERROR" ? debouncedResend : debouncedSend}
                 className={styles.send}
                 disabled={!allowSend()}>
           <img src={sendIcon()} alt="send"/>

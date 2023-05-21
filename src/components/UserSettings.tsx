@@ -79,17 +79,17 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
             <select id="model-input" className={`${styles.model} ${darkThemeClass()}`}
                     value={settings.model} onChange={handleModelChange}>
               <option value={Constants.GPT_3_5}>GPT-3.5-Turbo</option>
-              <option value={Constants.GPT_4}>GPT-4</option>
+              <option value={Constants.GPT_4}>{"GPT-4 (Authorization from OpenAI Required)"}</option>
             </select>
           </div>
           <div className={styles["apikey-container"]}>
             <label htmlFor="apikey-input">
-              {"API Key (Is this safe?"}
+              {"API Key (Is this safe? "}
               <a href="https://github.com/darylhcw/self-hosted-gpt#questions"
                 rel="external help"
                 target="_black"
                 className={darkThemeClass()}>
-                {" See here"}
+                {"See here"}
               </a>
               {"):"}
             </label>

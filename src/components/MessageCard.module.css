@@ -19,7 +19,7 @@
 .dark-theme {
   color: var(--text-white);
   background: var(--grey-dark-2);
-  border-bottom: none;
+  border-color: var(--grey-light-transparent-1);
 }
 
 .dark-theme.assistant-bg {
@@ -35,6 +35,14 @@
 .message-text {
   flex-grow: 1;
   line-height: 1.6;
+}
+.error {
+  white-space: pre-wrap;
+  color: var(--text-error-light-theme);
+}
+.error-dark {
+  white-space: pre-wrap;
+  color: var( --text-error-dark-theme);
 }
 
 .codeblock {

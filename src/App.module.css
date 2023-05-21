@@ -17,6 +17,17 @@
   color: var(--text-white);
 }
 
+.tokens {
+  margin-top: 1rem;
+  text-align: center;
+}
+.warning {
+  color: var(--text-warning-light-theme);
+}
+.warning.dark-theme {
+  color: var(--text-warning-dark-theme);
+}
+
 .message-box {
   width: 100%;
   position: sticky;

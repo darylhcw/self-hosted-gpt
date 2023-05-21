@@ -18,6 +18,7 @@
   text-align: left;
   color: var(--text-white);
   font-size: 0.875rem;
+  white-space: pre-wrap;
 
   background: var(--grey-dark-3);
   border: 1px solid var(--grey-light-transparent-1);

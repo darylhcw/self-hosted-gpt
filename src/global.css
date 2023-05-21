@@ -8,6 +8,11 @@
   --text-grey:  #8E8E94;
   --text-grey-2: #CCCCCE;
 
+  --text-warning-light-theme: #D19E06;
+  --text-warning-dark-theme: #FFC107;
+  --text-error-light-theme: red;
+  --text-error-dark-theme: #FF8B8B;
+
   --link-text-dark-theme: #8B8BF7;
   --link-text-dark-theme-visited: #B297CA;
 
