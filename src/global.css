@@ -12,6 +12,7 @@
   --text-warning-dark-theme: #FFC107;
   --text-error-light-theme: red;
   --text-error-dark-theme: #FF8B8B;
+  --button-green: #10A37F;
 
   --link-text-dark-theme: #8B8BF7;
   --link-text-dark-theme-visited: #B297CA;
@@ -47,6 +48,11 @@ body {
 }
 *:focus:not(:focus-visible) {
   outline: none;
+}
+
+textarea {
+  font-family: inherit;
+  font-size: inherit;
 }
 
 h1, h2, h3, h4, h5 {

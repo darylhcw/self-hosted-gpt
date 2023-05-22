@@ -63,6 +63,45 @@
   text-align: center;
 }
 
+.editing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.editing-container textarea {
+  width: 100%;
+  line-height: 1.6;
+  background: none;
+  border: none;
+  resize: none;
+}
+.editing-container.dark-theme textarea {
+  color: var(--text-white);
+}
+.editing-container textarea:focus {
+  outline: none;
+}
+
+.editing-container button {
+  padding: 0.6rem 0.8rem;
+  margin-top: 1rem;
+  margin-right: 0.5rem;
+
+  font-size: 0.9rem;
+
+  border: 1px solid var(--grey-light-2);
+  border-radius: 4px;
+}
+.editing-container.dark-theme button {
+  color: var(--text-white);
+  border-color: var(--grey-light-transparent-1);
+}
+.save-edit-btn {
+  color: white;
+  background: var(--button-green);
+  border: none;
+}
 
 @media (max-width: var(--small-screen)) {
   .container-inner {

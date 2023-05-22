@@ -1,8 +1,9 @@
-import { ChatMessage } from "@/types";
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw'
-import { Theme } from '@/types';
+import GrowingTextArea from '@/components/GrowingTextArea';
+import { ChatMessage, Theme } from "@/types";
 import styles from "./MessageCard.module.css";
 
 
@@ -17,8 +18,30 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
   const partial = message.partial !== undefined;
   const darkTheme = theme == "DARK"
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedMsg, setEditedMsg] = useState(message.content);
+  const editTxtArea = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    editTxtArea?.current?.focus();
+  }, [isEditing]);
+
   function editMessageCB() {
-    editMessage(message.id, message.content + "ASDF");
+    setIsEditing(true);
+  }
+
+  function handleEditMsgChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    setEditedMsg(event.target.value);
+  }
+
+  function editMessageSaveCB() {
+    editMessage(message.id, editedMsg);
+    setIsEditing(false);
+  }
+
+  function editMessageCancelCB() {
+    setIsEditing(false);
+    setEditedMsg(message.content);
   }
 
   function copyTextCB() {
@@ -26,26 +49,59 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
     navigator.clipboard.writeText(message.content);
   }
 
+  function renderErrorMsg() {
+    return (
+      <p className={`${darkTheme ? styles["error-dark"] : styles.error}`}>
+        {errMsg}
+      </p>
+    )
+  }
+
+  function renderMessage() {
+    return (
+      <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
+                     components={markdownComps}
+                     linkTarget="_new">
+        {partial ? message.partial! : message.content}
+      </ReactMarkdown>
+    )
+  }
+
+  function renderEditingMessage() {
+    return (
+      <div className={`${styles["editing-container"]} ${darkTheme ? styles["dark-theme"] : ""}`}>
+        <GrowingTextArea ref={editTxtArea}
+                         onChange={handleEditMsgChange}
+                         value={editedMsg}/>
+        <div>
+          <button className={styles["save-edit-btn"]}
+                  onClick={() => editMessageSaveCB()}>
+            Save and Submit
+          </button>
+          <button onClick={() => editMessageCancelCB()}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`${styles.container} ${message.role == "assistant" ? styles["assistant-bg"] : ""} ${darkTheme ? styles["dark-theme"] : ""}`}>
       <div className={styles["container-inner"]}>
         <img src={ message.role == "assistant"
-                    ? (darkTheme ? "robot-light.svg" : "robot.svg")
-                    : (darkTheme ? "user-light.svg" : "user.svg")
+                     ? (darkTheme ? "robot-light.svg" : "robot.svg")
+                     : (darkTheme ? "user-light.svg" : "user.svg")
                  }
              className={styles.icon}
              alt={message.role}/>
 
         <div className={styles["message-text"]}>
           { errMsg
-            ? <p className={`${darkTheme ? styles["error-dark"] : styles.error}`}>
-                {errMsg}
-              </p>
-            : <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
-                             components={markdownComps}
-                             linkTarget="_new">
-                {partial ? message.partial! : message.content}
-              </ReactMarkdown>
+              ? renderErrorMsg()
+              : isEditing
+                  ? renderEditingMessage()
+                  : renderMessage()
           }
           <p className={styles.tokens}>{`Tokens: ${message.tokens ?? "?"}`}</p>
         </div>

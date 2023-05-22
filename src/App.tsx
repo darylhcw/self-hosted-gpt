@@ -80,7 +80,7 @@ export default function App() {
     const messages = [...currentChat.messages, newMessage]
     chat.setStatus(sentChatId, "SENDING");
 
-    sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
+    await sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
   }
 
   const editCallback = useCallback(async(messageId: number, content: string) => {
@@ -102,7 +102,7 @@ export default function App() {
     const messages = [...currentChat.messages]
     chat.setStatus(sentChatId, "SENDING");
 
-    sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
+    await sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
   }
 
   async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[], chatTokens?: number) {

@@ -47,8 +47,7 @@
 .send-container {
   position: relative;
 }
-
-.txtArea {
+.send-container textarea {
   max-height: 20rem;
   width: 650px;
   padding: 0.6rem 0.8rem;
@@ -63,7 +62,7 @@
 
   resize: none;
 }
-.txtArea.dark-theme {
+.send-container.dark-theme textarea {
   color: var(--text-grey);
   caret-color: var(--text-grey);
 
@@ -71,7 +70,7 @@
   border-color: var(--grey-light-transparent-1);
   box-shadow: 1px 1px 5px 1px var(--grey-dark-3);
 }
-.txtArea:focus {
+.send-container textarea:focus {
   outline: none;
 }
 

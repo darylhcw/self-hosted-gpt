@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import GrowingTextArea from '@/components/GrowingTextArea';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useUserSettings } from '@/hooks/useUserSettings';
-import { ChatStatus, Role } from '@/types';
+import { ChatStatus } from '@/types';
 import styles from './MessageBox.module.css'
 
 
 interface MessageBoxProps {
   status: ChatStatus;
-  sendCB: (message: string) => void;
-  resendCB: () => void;
+  sendCB: (message: string) => Promise<void>;
+  resendCB: () => Promise<void>;
   hasMsg : boolean;
 }
 
@@ -25,19 +26,6 @@ export default function MessageBox({
 
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState("");
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Variable height textArea - with limit.
-  useEffect(() => {
-    const txtArea  = textAreaRef.current;
-
-    if (txtArea) {
-      // We need to reset the height momentarily to get the correct scrollHeight for the textarea
-      txtArea.style.height = "0px";
-      const scrollHeight = txtArea.scrollHeight + 2;
-      txtArea.style.height = scrollHeight + "px";
-    }
-  }, [textAreaRef, message]);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(event.target.value);
@@ -51,28 +39,31 @@ export default function MessageBox({
   };
 
   const sendMessage = useCallback(async () => {
-    if (message.trim.length <= 0 ) {
-      setIsSending(true);
-      sendCB(message);
-      setMessage("");
-      setIsSending(false);
-    }
-  }, [sendCB, message, setIsSending]);
+    if (!allowSend()) return;
+    if (message.trim().length <= 0) return;
+
+    setIsSending(true);
+    setMessage("");
+    await sendCB(message);
+    setIsSending(false);
+  }, [sendCB, message, setIsSending, isSending, status]);
 
   const debouncedSend = useDebounce(sendMessage, 1000);
 
   const resendMessage = useCallback(async () => {
-    if (message.trim.length <= 0 ) {
-      setIsSending(true);
-      resendCB();
-      setIsSending(false);
-    }
-  }, [resendCB, setIsSending]);
+    if (!allowSend()) return;
+    if (message.trim().length <= 0) return;
+
+    setIsSending(true);
+    setMessage("");
+    await resendCB();
+    setIsSending(false);
+  }, [resendCB, setIsSending, isSending, status]);
 
   const debouncedResend = useDebounce(resendMessage, 1000);
 
   function allowSend() {
-    return status !== "SENDING";
+    return !isSending && status !== "SENDING";
   }
 
   function allowResend() {
@@ -97,15 +88,11 @@ export default function MessageBox({
               </button>
       }
 
-      <div className={styles["send-container"]}>
-        <textarea className={`${styles.txtArea} ${themeClass}`}
-                  ref={textAreaRef}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyPress}
-                  value={message}
-                  placeholder="Send a message."
-                  rows={1}
-        />
+      <div className={`${styles["send-container"]} ${themeClass}`}>
+        <GrowingTextArea onChange={handleChange}
+                         onKeyDown={handleKeyPress}
+                         value={message}
+                         placeholder="Send a message."/>
         <button onClick={status == "ERROR" ? debouncedResend : debouncedSend}
                 className={styles.send}
                 disabled={!allowSend()}>
