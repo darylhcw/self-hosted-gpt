@@ -63,7 +63,7 @@
   resize: none;
 }
 .send-container.dark-theme textarea {
-  color: var(--text-grey);
+  color: var(--text-white);
   caret-color: var(--text-grey);
 
   background: var(--grey-dark-1);

@@ -256,6 +256,7 @@ function useChat(id : number | null) {
       id: chat.id,
       title: message?.length <= 20 ? message : message.substring(0, 20),
       preview: message?.length <= 25 ? message : message.substring(0, 25),
+      createdAt: Date.now(),
     }
   } ,[chat]);
 

@@ -14,6 +14,8 @@
   --text-error-dark-theme: #FF8B8B;
   --button-green: #10A37F;
 
+  --blue-focus-outline: 2px solid #2563eb;
+
   --link-text-dark-theme: #8B8BF7;
   --link-text-dark-theme-visited: #B297CA;
 
@@ -30,7 +32,6 @@
   --grey-dark-2-alpha192: #343541C0;
 
   --settings-btn-radius: 6px;
-  --settings-blue-focus-outline: 2px solid #2563eb;
 }
 
 html,
@@ -58,6 +59,10 @@ textarea {
 h1, h2, h3, h4, h5 {
   padding: 0;
   margin: 0;
+}
+
+ol {
+  list-style-type: none;
 }
 
 button {

@@ -15,6 +15,7 @@ export interface ChatHeader {
   id: number;
   title: string;
   preview: string;  // Preview of first message.
+  createdAt: number;
 }
 
 // "messages" are in sequential order, sorted by id.
@@ -54,6 +55,7 @@ export function isChatHeader(header: ChatHeader): header is ChatHeader {
   if (header.id === undefined || typeof header.id !== 'number') return false;
   if (header.title === undefined || typeof header.title !== 'string') return false;
   if (header.preview === undefined || typeof header.preview !== 'string') return false;
+  if (header.createdAt === undefined || typeof header.createdAt !== 'number') return false;
 
   return true;
 }

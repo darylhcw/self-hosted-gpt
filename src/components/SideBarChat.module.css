@@ -26,9 +26,30 @@
 }
 .chat p {
   color: var(--text-grey);
+  text-align: left;
 }
 .chat-name {
+  /* Keep min-width 0 for ellipsis! */
   min-width: 0;
+}
+.chat-name textarea {
+  width: 100%;
+  margin-left: -0.5rem;
+  padding: 0.3rem;
+
+  color: inherit;
+  font-size: 0.875rem;
+  font-weight: bold;
+
+  background: var(--grey-dark-2);
+  border: var(--blue-focus-outline);
+  border-radius: 4px;
+
+  overflow: hidden;
+  resize: vertical;
+}
+.chat-name textarea:focus {
+  outline: none;
 }
 
 .action-button {

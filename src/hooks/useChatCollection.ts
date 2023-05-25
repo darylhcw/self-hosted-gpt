@@ -30,6 +30,7 @@ const chatCollReducer = (state: ChatCollection, action: ChatCollDispatchAction) 
           id: nextId,
           title: "New Chat",
           preview: "",
+          createdAt: Date.now()
         }
       }
 

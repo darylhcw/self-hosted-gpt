@@ -30,7 +30,7 @@
   border-color: var(--grey-light-3);
 }
 .button:focus {
-  outline: var(--settings-blue-focus-outline);
+  outline: var(--blue-focus-outline);
 }
 
 
@@ -80,7 +80,7 @@
   background: var(--grey-dark-2);
 }
 .toggle:focus {
-  outline: var(--settings-blue-focus-outline);
+  outline: var(--blue-focus-outline);
 }
 
 .inner-toggle {
@@ -113,7 +113,7 @@
 }
 .model:focus {
   border-color: transparent;
-  outline: var(--settings-blue-focus-outline);
+  outline: var(--blue-focus-outline);
 }
 
 .apikey-container {
@@ -154,7 +154,7 @@ a:visited.dark {
   color: var(--link-text-dark-theme-visited);
 }
 a:focus {
-  outline: var(--settings-blue-focus-outline);
+  outline: var(--blue-focus-outline);
 }
 
 .sysmsg-container {
