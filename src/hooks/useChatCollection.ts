@@ -88,6 +88,26 @@ function useChatCollection() {
     dispatch({ type: 'delete-chat', id: chatId });
   }, [dispatch]);
 
+  const latestChatId = useCallback(() => {
+    let latest = 1;
+    for (const header of chatCollection) {
+      if (header.id > latest) latest = header.id;
+    }
+
+    return latest;
+  }, [chatCollection.length]);
+
+  const latestChatIdByDate = useCallback(() => {
+    let last = chatCollection.at(-1);
+    if (!last) return null;
+
+    for (const header of chatCollection) {
+      if (header.createdAt > last.createdAt) last = header;
+    }
+
+    return last.id;
+  }, [chatCollection.length]);
+
   return {
     collection: chatCollection,
     dispatch: dispatch,
@@ -95,6 +115,8 @@ function useChatCollection() {
     setChatTitle: setChatTitle,
     setChatPreview: setChatPreview,
     deleteChat: deleteChat,
+    latestChatId: latestChatId,
+    latestChatIdByDate: latestChatIdByDate,
   }
 }
 

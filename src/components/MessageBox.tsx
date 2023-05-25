@@ -52,7 +52,6 @@ export default function MessageBox({
 
   const resendMessage = useCallback(async () => {
     if (!allowSend()) return;
-    if (message.trim().length <= 0) return;
 
     setIsSending(true);
     setMessage("");

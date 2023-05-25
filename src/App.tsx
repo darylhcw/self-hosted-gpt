@@ -27,22 +27,14 @@ export default function App() {
   function addNewChat() {
     if (currentChat.new) return;
 
-    let id = 1;
-    const lastChat = collection.at(-1);
-    if (lastChat) id = lastChat.id + 1;
-
-    chat.newChat(id);
+    chat.newChat(chatColl.latestChatId() + 1);
   }
 
   // Used when changing system message on new chat.
   function refreshNewChat() {
     if (!currentChat.new) return;
 
-    let id = 1;
-    const lastChat = collection.at(-1);
-    if (lastChat) id = lastChat.id + 1;
-
-    chat.newChat(id);
+    chat.newChat(chatColl.latestChatId() + 1);
   }
 
   const setCurrentChat = useCallback((id: number) => {
@@ -147,8 +139,7 @@ export default function App() {
   }
 
   function initialChatId() {
-    const last = collection.at(-1);
-    return last ? last.id : null;
+    return chatColl.latestChatIdByDate();
   }
 
   function hasSentMessage() {
