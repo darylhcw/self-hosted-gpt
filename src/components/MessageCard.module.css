@@ -50,6 +50,9 @@
   border-radius: 6px;
 }
 
+.buttons-container {
+  display: flex;
+}
 .action-button {
   align-self: flex-start;
   width: fit-content;

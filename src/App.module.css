@@ -33,3 +33,23 @@
   position: sticky;
   bottom: 0%;
 }
+
+.scroll-bottom {
+  position: fixed;
+  bottom: min(5rem, 100px);
+  right: min(3rem, 50px);
+  width: 36px;
+  height: 36px;
+
+  background: var(--grey-light-1);
+  border: 1px solid var(--grey-light-2);
+  border-radius: 50%;
+}
+.scroll-bottom.dark-theme {
+  background: var(--grey-dark-2);
+  border-color: var(--grey-light-transparent-1);
+}
+.scroll-bottom img {
+  width: 20px;
+  height: 20px;
+}

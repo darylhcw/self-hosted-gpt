@@ -20,6 +20,8 @@
   --link-text-dark-theme-visited: #B297CA;
 
   --grey-light-transparent-1: rgba(255, 255, 255, 0.2);
+  --grey-light-1-alpha192: #F7F7F7C0;
+  --grey-dark-2-alpha192: #343541C0;
 
   --grey-light-1: #F7F7F7;
   --grey-light-2: #CACACA;
@@ -27,9 +29,6 @@
   --grey-dark-1: #444654;
   --grey-dark-2: #343541;
   --grey-dark-3:#202123;
-
-  --grey-light-1-alpha192: #F7F7F7C0;
-  --grey-dark-2-alpha192: #343541C0;
 
   --settings-btn-radius: 6px;
 }

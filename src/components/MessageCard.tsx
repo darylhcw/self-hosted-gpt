@@ -105,7 +105,7 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
           }
           <p className={styles.tokens}>{`Tokens: ${message.tokens ?? "?"}`}</p>
         </div>
-        <div>
+        <div className={styles["buttons-container"]}>
         { message.role === "user"
             && <button onClick={editMessageCB} className={styles["action-button"]}>
                 <img src={`edit${darkTheme ? "-light" : ""}.svg`} alt="edit"/>

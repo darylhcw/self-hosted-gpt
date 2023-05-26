@@ -1,5 +1,6 @@
 import { APIError } from './apiError';
-import { ChatMessage } from '@/types';
+import { Constants } from '@/constants';
+import { ChatMessage, Role } from '@/types';
 
 const COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 
@@ -21,12 +22,7 @@ async function sendChatStream(apiKey: string,
   if (USE_MOCK_API) return mockSendChat(model, messages);
   if (USE_MOCK_API_ERROR) return mockSendChatError(model, messages);
 
-  const toSendMessages = messages.map((message) => {
-    return {
-      role: message.role,
-      content: message.content
-    }
-  });
+  const toSendMessages = messagesUpToContextLimit(messages, model);
 
   const body = {
     model: model,
@@ -86,7 +82,7 @@ async function sendChatStream(apiKey: string,
  * Stream handling methods mainly taken from multiple solutions in this thread:
  * https://github.com/openai/openai-node/issues/18
  */
-const decodeResponse = (response?: Uint8Array) => {
+function decodeResponse(response?: Uint8Array) {
   if (!response) return "";
 
   // Look for multiple matches of:
@@ -225,6 +221,53 @@ function header(apiKey: string) {
 
 
 /*********************************************
+ * Helper
+ ********************************************/
+
+function messagesUpToContextLimit(messages: ChatMessage[], model: string) {
+  if (messages.length == 0) return [];
+
+  const toSendMessages = [];
+  let tokens = 0;
+
+  const first = messages[0];
+  if (first.role === "system") {
+    if (first.tokens) tokens += first.tokens;
+    toSendMessages.push({
+      role: first.role as Role,
+      content: first.content,
+    })
+  }
+
+  const revMessages = []
+  for (let i = messages.length - 1; i >= 1; i--) {
+    const message = messages[i];
+    if (message.tokens) tokens += message.tokens;
+
+    revMessages.push({
+      role: message.role,
+      content: message.content,
+    })
+
+    if (overContextLimit(model, tokens)) break;
+  }
+
+  return toSendMessages.concat(revMessages.reverse());
+}
+
+function overContextLimit(model: string, tokens: number) {
+  let max;
+
+  switch(model) {
+    case Constants.GPT_3_5: max = Constants.GPT_3_5_MAX_TOKENS; break;
+    case Constants.GPT_4: max = Constants.GPT_4_MAX_TOKENS; break;
+    default:
+  }
+
+  return max ? tokens > max : false;
+}
+
+/*********************************************
  * Other
  ********************************************/
 
@@ -315,6 +358,7 @@ async function mockSendChatError(model: string, messages: ChatMessage[]) {
 
 export {
   sendChat, sendChatStream,
+  overContextLimit,
   test,
   getModels,
 }

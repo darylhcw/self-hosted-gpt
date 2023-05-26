@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { sendChatStream, getModels } from '@/api/chat';
+import { useState, useEffect, useCallback } from 'react';
+import { sendChatStream, overContextLimit, getModels } from '@/api/chat';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
@@ -13,6 +13,8 @@ import styles from './App.module.css';
 
 
 export default function App() {
+  const [scrolledToBottom, setScrolledToBottom] = useState(false)
+
   const chatColl = useChatCollection();
   const collection = chatColl.collection;
 
@@ -23,6 +25,25 @@ export default function App() {
   const sysMessageTokens = sysMsg ? countTokens(sysMsg) : 0;
 
   const settings = useUserSettings();
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  function handleScroll() {
+    const offset = -3;  // In case of rounding errors.
+    const scrolled = window.innerHeight + window.scrollY - document.body.offsetHeight;
+    if (scrolled > offset) {
+      setScrolledToBottom(true);
+    } else if (scrolled <= offset) {
+      setScrolledToBottom(false);
+    }
+  };
+
+  function scrollToBottom() {
+    window.scrollTo({top: document.body.offsetHeight});
+  }
 
   function addNewChat() {
     if (currentChat.new) return;
@@ -89,12 +110,13 @@ export default function App() {
     const sentChatId = currentChat.id;
     const chatTokens = currentChat.tokens;
     const lastUserMessage = currentChat.messages.findLast((message) => message.role === "user");
-    let messageId = lastUserMessage ? lastUserMessage.id : currentChat.messages.length;
-
-    const messages = [...currentChat.messages]
+    const messageId = lastUserMessage ? lastUserMessage.id : currentChat.messages.length;
+    const editedMessages = getMessagesAfterEdit(messageId, lastUserMessage?.content);
     chat.setStatus(sentChatId, "SENDING");
+    chat.setPartialMessage(sentChatId, messageId, "");
 
-    await sendAndReceiveFromGPT(sentChatId, messageId, messages, chatTokens);
+    await sendAndReceiveFromGPT(sentChatId, messageId, editedMessages, chatTokens);
+    chat.refreshChatTokens(sentChatId);
   }
 
   async function sendAndReceiveFromGPT(sentChatId: number, messageId: number, messages: ChatMessage[], chatTokens?: number) {
@@ -147,7 +169,7 @@ export default function App() {
     return lastSender !== "system";
   }
 
-  function getMessagesAfterEdit(messageId: number, content: string) {
+  function getMessagesAfterEdit(messageId: number, content: string | undefined) {
     const messages = currentChat.messages;
 
     // delete all after the target message (same as ChatGPT - content useless after)
@@ -160,13 +182,22 @@ export default function App() {
     const newMessage = {
       id: messageId,
       role: targetMessage.role,
-      content: content,
+      content: content ?? targetMessage.content,
     }
 
     const newMessages = messages.filter((message) => message.id < messageId);
     newMessages.push(newMessage);
 
     return newMessages;
+  }
+
+  function renderScrollToBottomButton() {
+    return (
+      <button className={`${styles["scroll-bottom"]} ${settings.theme == "DARK" ? styles["dark-theme"] : ""}`}
+              onClick={() => scrollToBottom()}>
+        <img src={`arrow-down${ settings.theme == "DARK" ? "-light" : ""}.svg`}/>
+      </button>
+    )
   }
 
   return (
@@ -194,25 +225,9 @@ export default function App() {
                       sendCB={sendCallback}
                       resendCB={resendCallback}
                       hasMsg={hasSentMessage()}/>
+          { !scrolledToBottom && renderScrollToBottomButton() }
         </div>
       </main>
     </div>
   )
-}
-
-
-/*********************************************
- * Misc
- ********************************************/
-
-function overContextLimit(model: string, tokens: number) {
-  let max;
-
-  switch(model) {
-    case Constants.GPT_3_5: max = Constants.GPT_3_5_MAX_TOKENS; break;
-    case Constants.GPT_4: max = Constants.GPT_4_MAX_TOKENS; break;
-    default:
-  }
-
-  return max ? tokens > max : false;
 }
