@@ -18,7 +18,7 @@ const utf8Decoder = new TextDecoder('utf8');
 async function sendChatStream(apiKey: string,
                               model: string,
                               messages: ChatMessage[],
-                              streamReadCB?: (stream: string) => void) {
+                              streamReadCB?: (stream: string) => Promise<void>) {
   if (USE_MOCK_API) return mockSendChat(model, messages);
   if (USE_MOCK_API_ERROR) return mockSendChatError(model, messages);
 
@@ -105,14 +105,14 @@ function decodeResponse(response?: Uint8Array) {
 
 async function readResponse(reader: ReadableStreamDefaultReader,
                             streamS: string,
-                            onRead?: (stream: string) => void) : Promise<string> {
+                            onRead?: (stream: string) => Promise<void>) : Promise<string> {
   const { value, done } = await reader.read();
   if (done) return streamS;
 
   const decoded = decodeResponse(value);
   if (decoded) {
     streamS += decoded;
-    if (onRead) onRead(streamS);
+    if (onRead) await onRead(streamS);
   }
 
   return await readResponse(reader, streamS, onRead);

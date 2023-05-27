@@ -4,6 +4,9 @@ dependencies:
   '@nem035/gpt-3-encoder':
     specifier: ^1.1.7
     version: 1.1.7
+  idb:
+    specifier: ^7.1.1
+    version: 7.1.1
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -1195,6 +1198,10 @@ packages:
 
   /html-void-elements@2.0.1:
     resolution: {integrity: sha512-0quDb7s97CfemeJAnW9wC0hw78MtW7NU3hqtCD75g2vFlDLt36llsYD7uB7SUzojLMP24N5IatXf7ylGXiGG9A==}
+    dev: false
+
+  /idb@7.1.1:
+    resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
     dev: false
 
   /ignore@5.2.4:

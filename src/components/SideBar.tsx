@@ -10,8 +10,7 @@ const MemoedSideBarChat = memo(SideBarChat);
 interface SideBarProps {
   coll : ChatCollection;
   setCurrentChat: (id: number) => void;
-  addNewChat: () => void;
-  refreshNewChat: () => void;
+  startNewChat: () => void;
   setChatTitle: (chatId: number, title: string) => void;
   deleteChat: (chatId: number) => void;
 }
@@ -19,8 +18,7 @@ interface SideBarProps {
 export default function SideBar({
   coll,
   setCurrentChat,
-  addNewChat,
-  refreshNewChat,
+  startNewChat,
   setChatTitle,
   deleteChat,
 } : SideBarProps
@@ -74,12 +72,12 @@ export default function SideBar({
   return (
     <>
       {/* Modal: Layout independent of rest of content */}
-      { settingsOpen && <UserSettings refreshNewChat={refreshNewChat}
+      { settingsOpen && <UserSettings refreshNewChat={startNewChat}
                                       closeSettings={() => setSettingsOpen(false)}/> }
 
       <nav className={styles.container}>
         <div className={styles["top-buttons"]}>
-          <button onClick={addNewChat} className={styles.new}>
+          <button onClick={startNewChat} className={styles.new}>
             +    New Chat
           </button>
           <button onClick={() => setSettingsOpen(!settingsOpen)}

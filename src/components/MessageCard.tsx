@@ -15,7 +15,6 @@ export interface MessageCardProps {
 }
 
 export default function MessageCard({ theme, message, errMsg, editMessage} : MessageCardProps) {
-  const partial = message.partial !== undefined;
   const darkTheme = theme == "DARK"
 
   const [isEditing, setIsEditing] = useState(false);
@@ -62,7 +61,7 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
       <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
                      components={markdownComps}
                      linkTarget="_new">
-        {partial ? message.partial! : message.content}
+        { message.content.length > 0 ? message.content : (message.partial ?? "")}
       </ReactMarkdown>
     )
   }

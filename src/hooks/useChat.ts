@@ -1,318 +1,343 @@
-import { useReducer, useCallback } from 'react';
+import { useEffect, useReducer, useCallback, useRef } from 'react';
 import { useUserSettings } from './useUserSettings';
-import { LSProxy } from '@/lsProxy';
+import { addDBChat, getDBChat, getLatestDBChatId, updateDBChat, deleteDBChat } from '@/idb/chat';
+import { sendChatStream } from '@/api/chat';
 import { countTokens } from '@/tokenCounter';
 import { Constants } from '@/constants';
-import { Chat, ChatMessage, ChatHeader, ChatStatus } from '@/types';
+import { DBChat, Chat, ChatMessage, ChatStatus, Role } from '@/types';
 
-/*********************************************
- * Reducer for singular Chat
- * - For dispatch actions, the idea is that :
- *   = Immediate actions that don't need a response from GPT/API can set directly
- *   = Delayed actions that need a response from GPT/API needs to check timestamps
- *     in case user has deleted the chat!
- ********************************************/
-
-export type ChatDispatchAction =
-  | {type: "new-chat", id: number, sysMsg: string}
-  | {type: "add-message", chatId: number, message: ChatMessage, createdAt: number}
-  | {type: "edit-messages", messages: ChatMessage[]}
-  | {type: "edit-message", chatId: number, messageId: number, message: string, setAt: number}
-  | {type: "set-partial-message", chatId: number, messageId: number, message: string, setAt: number}
-  | {type: "set-chat", id: number}
-  | {type: "set-status", chatId: number, status: ChatStatus, setAt: number}
-  | {type: "set-old"}
-  | {type: "delete-chat", chatId: number}
-  | {type: "set-error-message", chatId: number, message: string, setAt: number}
-  | {type: "set-chat-tokens", chatId: number, tokens: number, setAt: number}
-  | {type: "set-message-tokens", chatId: number, messageId: number, tokens: number, setAt: number}
-  | {type: "refresh-chat-tokens", chatId: number}
-
-const chatReducer = (state: Chat, action: ChatDispatchAction) => {
-  switch (action.type) {
-    case 'new-chat': {
-      return defaultChat(action.id, action.sysMsg);
-    }
-
-    case 'add-message': {
-      if (state.createdAt > action.createdAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      if (isDupeMessage(chat.messages, action.message.id)) {
-        return state;
-      }
-
-      const newMessages = [...chat.messages, action.message]
-      const newState = {...chat, messages: newMessages}
-
-      saveChatToLocalStorage(newState);
-      return state.id ===  action.chatId ? newState : state;
-    }
-
-    case 'edit-messages': {
-      const newState = {...state, messages: action.messages}
-      saveChatToLocalStorage(newState);
-      return newState;
-    }
-
-    case 'edit-message': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newMessages = chat.messages.map((message) => {
-        if (message.id === action.messageId) {
-          return {...message, content: action.message};
-        }
-        return message;
-      })
-
-      const newChat = {...chat, messages: newMessages}
-      return state.id ===  action.chatId ? newChat : state;
-    }
-
-    case 'set-status': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newState = {...chat, status: action.status}
-
-      saveChatToLocalStorage(newState);
-      return state.id ===  action.chatId ? newState : state;
-    }
-
-    case 'set-old': {
-      return {...state, new:false}
-    }
-
-    case 'set-chat': {
-      const savedChat = loadChatFromLocalStorage(action.id);
-      if (savedChat) {
-        return savedChat;
-      } else {
-        console.error(`Unable to load chat with id: ${action.id}!`);
-        return state;
-      }
-    }
-
-    case 'delete-chat': {
-      deleteChatFromLocalStorage(action.chatId);
-      if (state.id === action.chatId) {
-        return deletedChat(action.chatId)
-      } else {
-        return state;
-      }
-    }
-
-    case 'set-error-message': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newChat = {...chat, latestError: action.message}
-      return state.id ===  action.chatId ? newChat : state;
-    }
-
-    case 'set-partial-message': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newMessages = chat.messages.map((message) => {
-        if (message.id === action.messageId) {
-          if (action.message) {
-            return {...message, partial: action.message};
-          } else {
-            const res = {...message};
-            delete res.partial;
-            return res;
-          }
-        }
-        return message;
-      })
-
-      const newChat = {...chat, messages: newMessages}
-      return state.id ===  action.chatId ? newChat : state;
-    }
-
-    case 'set-chat-tokens': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newChat = {...chat, tokens: action.tokens}
-      return state.id === action.chatId ? newChat: state;
-    }
-
-    case 'set-message-tokens': {
-      if (state.createdAt > action.setAt) return state;
-
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newMessages = chat.messages.map((message) => {
-        if (message.id === action.messageId) {
-          return {...message, tokens:action.tokens};
-        } else {
-          return message;
-        }
-      })
-
-      const newChat = {...chat, messages: newMessages}
-      return state.id === action.chatId ? newChat: state;
-    }
-
-    case 'refresh-chat-tokens': {
-      const chat = getSavedChatForAction(action.chatId);
-      if (!chat) return state;
-
-      const newTokens = chat.messages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
-      const newChat = {...chat, tokens: newTokens}
-
-      return state.id === action.chatId ? newChat : chat;
-    }
-
-    default: return state;
-  }
-
-  function getSavedChatForAction(chatId: number) {
-    const isCurrent = (state.id === chatId);
-    if (!isCurrent) {
-      const savedChat = loadChatFromLocalStorage(chatId);
-      if (!savedChat) {
-        console.warn(`Unable to get saved Chat for action ${action.type} - ignore this if chat was deleted!.`);
-        return null;
-      } else {
-        return savedChat;
-      }
-    } else {
-      return state;
-    }
-  }
-}
-
-function useChat(id : number | null) {
+/**
+ * "API" for chat.
+ * - Hook that has the state of the current chat, and lets you
+ *   perform "API-like" operations like add/delete/etc.
+ */
+function useChat() {
   const settings = useUserSettings();
-  const [chat, dispatch] = useReducer(chatReducer, initialChat(id, settings.systemMessage));
+  const [currChat, dispatch] = useReducer(chatReducer, {...defaultChat(settings.systemMessage), id: 0});
 
-  const newChat = useCallback((id: number) => {
-    dispatch({ type: 'new-chat', id:id, sysMsg: settings.systemMessage});
+  // Ref so the callbacks never need to refresh to just compare with
+  const chatIdRef = useRef<number>(currChat.id);
+  chatIdRef.current = currChat.id;
+
+  useEffect(() => {
+    let isLatestFetch = true;
+
+    async function fetchLatestChat() {
+      try {
+        const id = await getLatestDBChatId();
+        if (isLatestFetch && id) {
+          setCurrentChat(id);
+        }
+      } catch (error) {
+        console.error("Couldn't fetch latest Chat!")
+        console.error(error);
+      }
+    }
+    fetchLatestChat();
+
+    return () => { isLatestFetch = false };
+  }, []);
+
+  const newChat = useCallback(async() => {
+    const newChat = defaultChat(settings.systemMessage);
+    const res = await addDBChat(newChat);
+    if (!res) {
+      console.error("newChat() failed!");
+      return;
+    }
+    const addedChat = {
+      ...newChat,
+      id: res,
+    }
+    dispatch({ type: 'set-chat', chat: addedChat});
+    return addedChat;
   }, [dispatch, settings.systemMessage]);
 
-  const addMessage = useCallback((chatId: number, message: ChatMessage) => {
-    dispatch({ type: 'add-message', chatId: chatId, message: message, createdAt: Date.now() });
+  const setBlankNewChat = useCallback(() => {
+    dispatch({ type: 'set-chat', chat: blankNewChat()});
   }, [dispatch]);
 
-  const editMessages = useCallback((messages: ChatMessage[]) => {
-    dispatch({ type: 'edit-messages', messages: messages }) ;
-  }, [dispatch]);
-
-  const editMessage = useCallback((chatId: number, messageId: number, message: string) => {
-    dispatch({ type: 'edit-message', chatId: chatId, messageId: messageId, message: message, setAt: Date.now()}) ;
-  }, [dispatch]);
-
-  const setPartialMessage = useCallback((chatId: number, messageId: number, message: string) => {
-    dispatch( {type: 'set-partial-message', chatId: chatId, messageId: messageId, message: message, setAt: Date.now() });
-  }, [dispatch]);
-
-  const setCurrentChat = useCallback((id: number) => {
-    dispatch({ type: 'set-chat', id: id });
-  } ,[dispatch]);
-
-  const deleteChat = useCallback((id: number) => {
-    dispatch({ type: 'delete-chat', chatId: id });
-  } ,[dispatch]);
-
-  const setStatus = useCallback((chatId: number, status: ChatStatus) => {
-    dispatch({ type: 'set-status', chatId: chatId, status: status, setAt: Date.now() });
-  } ,[dispatch]);
-
-  const setOld = useCallback(() => {
-    dispatch({ type: 'set-old' });
-  } ,[dispatch]);
-
-  const setChatTokens = useCallback((chatId: number, tokens: number) => {
-    dispatch({ type: "set-chat-tokens", chatId: chatId, tokens: tokens, setAt: Date.now() });
-  }, [dispatch]);
-
-  const setMessageTokens = useCallback((chatId: number, messageId: number, tokens: number) => {
-    dispatch({ type: "set-message-tokens", chatId: chatId, messageId: messageId, tokens: tokens, setAt: Date.now() });
-  }, [dispatch]);
-
-  const refreshChatTokens = useCallback((chatId: number) => {
-    dispatch({ type: "refresh-chat-tokens", chatId: chatId});
-  }, [dispatch]);
-
-  const getDefaultHeader : (message: string) => ChatHeader = useCallback((message) => {
-    return {
-      id: chat.id,
-      title: message?.length <= 20 ? message : message.substring(0, 20),
-      preview: message?.length <= 25 ? message : message.substring(0, 25),
-      createdAt: Date.now(),
+  const setCurrentChat = useCallback(async(chatId: number) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("setCurrentChat() failed getting chat - might be deleted.");
+      return false;
     }
-  } ,[chat]);
+    dispatch({ type: 'set-chat', chat: chat });
+    return true;
+  } ,[dispatch]);
 
-  const setErrorMessage = useCallback((chatId: number, message: string) => {
-    dispatch({ type: "set-error-message", chatId: chatId, message:message, setAt:Date.now() });
+  const deleteChat = useCallback(async(chatId: number) => {
+    const deleted = await deleteDBChat(chatId);
+    if (!deleted) {
+      console.error("Failed to delete in deleteChat()!");
+      return;
+    }
+  } ,[dispatch]);
+
+  const addMessage = useCallback(async(chatId: number, message: ChatMessage) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.error("addMessage() failed getting chat!");
+      return;
+    }
+    if (isDupeMessage(chat.messages, message.id)) {
+      console.error("addMessage() adding message with same id?!");
+      return;
+    }
+    chat.messages.push(message);
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("addMessage() failed adding messages - chat might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({ type: 'set-messages', messages: chat.messages});
+    }
   }, [dispatch]);
+
+  const setPartialMessage = useCallback(async(chatId: number, messageId: number, message: string) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("setPartialMessage() failed getting chat - might be deleted.");
+      return;
+    }
+    chat.messages = chat.messages.map((msg) => {
+      if (msg.id === messageId) {
+        return {...msg, partial: message };
+      }
+      return msg;
+    });
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("setPartialMessage() failed setting messages! - might be deleted.");
+    }
+
+    if (updated === chatIdRef.current) {
+      dispatch({ type: 'set-messages', messages: chat.messages});
+    }
+  }, [dispatch]);
+
+  const setStatus = useCallback(async(chatId: number, status: ChatStatus) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("setStatus() failed getting chat - might be deleted.");
+      return;
+    }
+    chat.status = status;
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("setStatus() failed setting status! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({ type: 'set-status', status: status});
+    }
+  } ,[dispatch]);
+
+  // New Age
+  const sendMessage = useCallback(async(chat: Chat, message: string) => {
+    const sentChatId = chat.id;
+    const lastMessage = chat.messages.at(-1);
+    let messageId = lastMessage ? lastMessage.id + 1 : 1;
+
+    const newMessage = {
+      id: messageId,
+      role: "user" as Role,
+      content: message,
+    }
+    chat.messages.push(newMessage);
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("sendMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+
+    sendToOpenAI(sentChatId, messageId, chat.messages);
+  }, [dispatch])
+
+  const editMessage = useCallback(async(chatId: number, messageId: number, content: string) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("editMessage() failed getting chat - might be deleted.");
+      return;
+    }
+    const editedMessages = getMessagesAfterEdit(chat.messages, messageId, content);
+    const chatTokens = editedMessages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
+    chat.messages = editedMessages;
+    chat.tokens = chatTokens;
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("editMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+    sendToOpenAI(chat.id, messageId, editedMessages);
+  }, [dispatch]);
+
+  const resendMessage = useCallback(async(chatId: number) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("resendMessage() failed getting chat - might be deleted.");
+      return;
+    }
+    const lastUserMessage = chat.messages.findLast((message) => message.role === "user");
+    const index = lastUserMessage ? chat.messages.indexOf(lastUserMessage) : chat.messages.length - 1;
+    const trimmed = chat.messages.slice(0, index + 1)
+    const chatTokens = trimmed.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
+    chat.messages = trimmed;
+    chat.tokens = chatTokens;
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("editMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+    sendToOpenAI(chat.id, lastUserMessage?.id ?? chat.messages.length, trimmed);
+  }, [dispatch]);
+
+  const sendToOpenAI = useCallback(async(sentChatId: number, messageId: number, messages: ChatMessage[]) => {
+    const resMsgId = messageId + 1;
+
+    const resMsg : ChatMessage = {
+      id: resMsgId,
+      role: "assistant" as Role,
+      content: "",
+    }
+    await addMessage(sentChatId, resMsg);
+
+    async function readCB(partial: string) {
+      await setPartialMessage(sentChatId, resMsgId, partial);
+    }
+
+    const res = await sendChatStream(settings.apiKey ?? "", settings.model, messages, readCB);
+    if (res.status === "SUCCESS") {
+      const gptResponse = res.data;
+      if (gptResponse) {
+        const sentChat = await getDBChat(sentChatId);
+        if (!sentChat) {
+          console.error("sendToOpenAI() failed getting chat - might be deleted");
+          setStatus(sentChatId, "ERROR");
+          return;
+        };
+        resMsg.content = gptResponse;
+
+        const sent = messages.at(-1);
+        const promptTokens = sent ? countTokens(sent) : 0;
+        const completionTokens = countTokens(resMsg);
+
+        const lastUserMsg = sentChat.messages.findLast((msg) => msg.role === "user");
+        if (lastUserMsg) lastUserMsg.tokens = promptTokens;
+        resMsg.tokens = completionTokens;
+        resMsg.partial = "";
+        sentChat.messages[sentChat.messages.length - 1] = resMsg;
+        sentChat.tokens = (sentChat.tokens ?? 0) + promptTokens + completionTokens;
+        sentChat.status = "READY";
+
+        if (!await updateDBChat(sentChat)) {
+          console.error("sendToOpenAI() failed to update chat - might be deleted");
+        }
+        dispatch({type: 'set-chat', chat: sentChat});
+      } else {
+        setStatus(sentChatId, "READY");
+      }
+    } else if (res.status === "ERROR") {
+      const sentChat = await getDBChat(sentChatId);
+      if (!sentChat) {
+        console.error("sendToOpenAI() failed getting chat - might be deleted");
+        setStatus(sentChatId, "ERROR");
+        return;
+      }
+
+      const last = sentChat.messages.at(-1)
+      if (last) last.partial = "";
+
+      const errData = res.data;
+      const errMsg = errData.error ? errData.error.message : errData;
+      sentChat.latestError = String(errMsg);
+      sentChat.status = "ERROR";
+      if (!await updateDBChat(sentChat)) {
+        console.error("sendToOpenAI() failed to update chat on error - might be deleted");
+      }
+      dispatch({type: 'set-chat', chat: sentChat});
+    }
+  }, [dispatch])
 
   return {
-    chat: chat,
+    chat: currChat,
     dispatch: dispatch,
+
+    // Specific actions on chat.
     newChat: newChat,
-    addMessage: addMessage,
-    editMessages: editMessages,
-    editMessage: editMessage,
-    setPartialMessage: setPartialMessage,
-    setStatus: setStatus,
-    setOld: setOld,
+    setBlankNewChat: setBlankNewChat,
     setCurrentChat: setCurrentChat,
     deleteChat: deleteChat,
-    setErrorMessage: setErrorMessage,
-    setChatTokens: setChatTokens,
-    setMessageTokens: setMessageTokens,
-    refreshChatTokens: refreshChatTokens,
-    getDefaultHeader: getDefaultHeader,
+    addMessage: addMessage,
+    setPartialMessage: setPartialMessage,
+
+    // Callbacks made to use for UI Events.
+    sendMessage: sendMessage,
+    editMessage: editMessage,
+    resendMessage: resendMessage,
   }
 }
 
-function isDupeMessage(messages: ChatMessage[], messageId: number) {
-  const lastMessage = messages.at(-1);
-  if (!lastMessage) {
-    return false;
-  } else {
-    return lastMessage.id >= messageId;
+type ChatDispatchAction =
+  | { type: "set-chat", chat: Chat}
+  | { type: "set-messages", messages: ChatMessage[]}
+  | { type: "set-status", status: ChatStatus}
+  | { type: "set-tokens", tokens: number}
+  | { type: "set-error", error: string}
+
+function chatReducer (state: Chat, action: ChatDispatchAction) {
+  switch (action.type) {
+    case 'set-chat': {
+      return action.chat;
+    }
+    case 'set-messages': {
+      return {
+        ...state,
+        messages: action.messages,
+      }
+    }
+    case 'set-status': {
+      return {
+        ...state,
+        status: action.status,
+      }
+    }
+    case 'set-tokens': {
+      return {
+        ...state,
+        tokens: action.tokens,
+      }
+    }
+    case 'set-error': {
+      return {
+        ...state,
+        latestError: action.error,
+      }
+    }
   }
 }
 
 
 /*********************************************
- * Local Storage/Init
+ * Helper
  ********************************************/
 
-// Keep track of loadedChatIds ("first-loads") per session, so we know if
-// anything was left in "SENDING" when we last closed the app.
-// -  Set them to error accordingly.
-const loadedChats = new Set<number>();
-
-function initialChat(id: number | null, sysMsg?: string) : Chat {
-  if (id) {
-    const savedChat = loadChatFromLocalStorage(id);
-    if (savedChat) return savedChat;
-  }
-
-  return defaultChat(1, sysMsg);
-}
-
-function defaultChat(id: number, sysMsg?: string) : Chat {
+function defaultChat(sysMsg?: string) : DBChat {
   // Empty string should give null here!
   const firstMsg = sysMsg ? initialSystemMessage(sysMsg) : null;
   const messages = [];
@@ -322,11 +347,9 @@ function defaultChat(id: number, sysMsg?: string) : Chat {
   }
 
   return {
-    id: id,
     messages: messages,
     status: "READY" as ChatStatus,
     createdAt: Date.now(),
-    new: true,
     tokens: firstMsg?.tokens ?? 0,
   }
 }
@@ -339,46 +362,41 @@ function initialSystemMessage(sysMsg: string) : ChatMessage {
   }
 }
 
-function deletedChat(id: number) : Chat {
+function isDupeMessage(messages: ChatMessage[], messageId: number) {
+  return messages.findLast((msg) => msg.id === messageId) !== undefined;
+}
+
+
+// This is a localOnly chat that is used if you hit the "New Chat" button.
+function blankNewChat() : Chat {
   return {
-    id: id,
-    messages: [
-      {
-        id: 1,
-        role: "assistant",
-        content: "deleting",
-      }
-    ],
-    status: "DELETING" as ChatStatus,
+    id: Constants.BLANK_CHAT_ID,
+    status: "READY" as ChatStatus,
     createdAt: Date.now(),
-    new: false,
+    messages: [],
   }
 }
 
-function saveChatToLocalStorage(chat: Chat) {
-  LSProxy.setChat(chat);
-}
-
-function loadChatFromLocalStorage(chatId: number) {
-  const chat = LSProxy.getChat(chatId);
-  if (chat) {
-    if (!loadedChats.has(chatId)) {
-      if (chat.status === "SENDING") {
-        chat.status = "ERROR";
-        saveChatToLocalStorage(chat);
-      }
-      loadedChats.add(chatId);
-    }
+function getMessagesAfterEdit(messages: ChatMessage[], messageId: number, content: string | undefined) {
+  // Delete all after the target message (same as ChatGPT)
+  const targetMessage = messages.findLast((message) => message.id === messageId);
+  if (!targetMessage) {
+    console.error("Couldn't find target message during edit message!");
+    return messages;
   }
 
-  return chat;
-}
+  const newMessage = {
+    id: messageId,
+    role: targetMessage.role,
+    content: content ?? targetMessage.content,
+  }
 
-function deleteChatFromLocalStorage(chatId: number) {
-  LSProxy.removeChat(chatId);
+  const newMessages = messages.filter((message) => message.id < messageId);
+  newMessages.push(newMessage);
+
+  return newMessages;
 }
 
 export {
   useChat,
-  loadedChats,
 }
