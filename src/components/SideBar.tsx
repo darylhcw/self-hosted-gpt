@@ -1,6 +1,7 @@
 import { useState, memo, Fragment } from 'react';
 import UserSettings from './UserSettings';
 import SideBarChat from '@/components/SideBarChat';
+import ChatStorageBar from '@/components/ChatStorageBar';
 import { dateAndFuncPairs } from '@/util/dates';
 import { ChatCollection } from '@/types';
 import styles from './SideBar.module.css'
@@ -39,7 +40,8 @@ export default function SideBar({
 
   let filteredColl;
   if (searchQuery.trim().length > 0) {
-    filteredColl = sortedColl.filter((coll) => coll.title.includes(searchQuery));
+    const lowerQuery = searchQuery.toLowerCase();
+    filteredColl = sortedColl.filter((coll) => coll.title.toLowerCase().includes(lowerQuery));
   } else {
     filteredColl = sortedColl;
   }
@@ -96,7 +98,7 @@ export default function SideBar({
             </button>
           }
         </div>
-        <ol>
+        <ol className={styles["chats-container"]}>
           {filteredColl.map((chat) =>
             <Fragment key={chat.id}>
               { renderDateLabelIfNeeded(chat.createdAt) }

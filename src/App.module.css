@@ -1,20 +1,22 @@
 .wrapper {
-  display: flex;
-  min-height: 100vh;
+  height: 100%;
 }
 
 .main {
-  min-width: 0;
-
+  margin-left: var(--sidebar-w);
+  height: 100%;
   display: flex;
-  flex-grow: 1;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
 }
 
 .bg-dark {
   background: var(--grey-dark-2);
   color: var(--text-white);
+}
+
+.messages {
+  flex-grow: 1;
 }
 
 .tokens {
@@ -31,7 +33,7 @@
 .message-box {
   width: 100%;
   position: sticky;
-  bottom: 0%;
+  bottom: 0;
 }
 
 .scroll-bottom {

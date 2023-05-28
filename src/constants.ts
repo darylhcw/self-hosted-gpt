@@ -1,5 +1,7 @@
 export class Constants {
+  // CSS
   static readonly MODAL_MAIN_ELEM = "MAIN_WRAPPER";
+  static readonly SCROLLBAR_DARK_CLASS = "scroll-dark";
 
   // Models
   static readonly GPT_3_5 = "gpt-3.5-turbo";

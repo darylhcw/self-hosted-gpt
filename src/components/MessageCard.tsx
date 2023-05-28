@@ -143,11 +143,11 @@ function CodeBlock({
 }) {
   return (
     inline
-      ? <code className={className}{...props}>
+      ? <code className={`hljs ${styles["inline-codeblock"]}`}{...props}>
          {children}
         </code>
       : <div className={`hljs ${styles.codeblock}`}>
-          <code {...props} className={className}>
+          <code {...props} className={styles["codeblock-inner"]}>
             {children}
           </code>
         </div>

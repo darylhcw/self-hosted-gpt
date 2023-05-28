@@ -1,13 +1,24 @@
 .container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
   width: var(--sidebar-w);
-  padding: 0.5rem 0.7rem;
+  padding: 0.5rem 0;
   background: var(--grey-dark-3);
+
+  display: flex;
+  flex-direction: column;
+}
+/* Hide chat scroll */
+.container:not(:hover) .chats-container::-webkit-scrollbar-thumb {
+  background: transparent;
 }
 
 .top-buttons {
   width: 100%;
   display: flex;
   margin-bottom: 1rem;
+  padding: 0 0.7rem;
 }
 
 .new {
@@ -45,6 +56,7 @@
 .search {
   position: relative;
   margin-bottom: 1rem;
+  padding: 0 0.7rem;
   width: 100%;
 }
 .search input{
@@ -72,4 +84,16 @@
 
   color: var(--text-white);
   font-size: 1rem;
+}
+
+.chats-container {
+  padding: 0 0.7rem;
+  flex-grow: 1;
+  overflow-y: scroll;
+}
+.chats-container::-webkit-scrollbar-thumb {
+  background: var(--grey-light-2);
+}
+.chats-container::-webkit-scrollbar-track {
+  background: var(--grey-dark-3);
 }
