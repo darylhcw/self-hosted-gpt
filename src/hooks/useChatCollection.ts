@@ -36,24 +36,12 @@ function useChatCollection() {
   }, [dispatch]);
 
   // Aside from adding to collection, generates the first title/preview.
-  const addNewChat = useCallback(async(chat: Chat, firstMsg: string) => {
+  const addNewChat = useCallback(async(chat: Chat) => {
     const header: ChatHeader = {
       id: chat.id,
-      title: firstMsg?.length <= 20 ? firstMsg : firstMsg.substring(0, 20),
-      preview: firstMsg?.length <= 25 ? firstMsg : firstMsg.substring(0, 25),
+      title: chat.title ?? "",
+      preview: chat.preview ?? "",
       createdAt: chat.createdAt,
-    }
-
-    const savedChat = await getDBChat(chat.id);
-    if (!savedChat) {
-      console.warn("addNewChat() for coll failed getting chat - might be deleted.");
-      return;
-    }
-    savedChat.title = header.title;
-    savedChat.preview = header.preview;
-
-    if (!await updateDBChat(savedChat)) {
-      console.warn("addNewChat() for coll failed setting title/preview! - might be deleted.");
     }
     dispatch({ type: 'add-chat', header: header });
   }, [dispatch]);

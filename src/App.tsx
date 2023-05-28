@@ -67,9 +67,9 @@ export default function App() {
     // Need to add new chat!
     let sentChat = currentChat;
     if (isNewChat) {
-      const addedChat = await chat.newChat()
+      const addedChat = await chat.newChat(message);
       if (addedChat) {
-        await chatColl.addNewChat(addedChat, message)
+        await chatColl.addNewChat(addedChat)
         sentChat = addedChat;
       } else {
         console.error("SendCallback failed to add new chat!");

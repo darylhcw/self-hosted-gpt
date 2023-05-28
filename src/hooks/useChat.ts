@@ -6,6 +6,12 @@ import { countTokens } from '@/tokenCounter';
 import { Constants } from '@/constants';
 import { DBChat, Chat, ChatMessage, ChatStatus, Role } from '@/types';
 
+const initialChat = {
+  ...defaultChat(Constants.DEFAULT_SYS_MSG),
+  id: 0,
+}
+
+
 /**
  * "API" for chat.
  * - Hook that has the state of the current chat, and lets you
@@ -13,7 +19,7 @@ import { DBChat, Chat, ChatMessage, ChatStatus, Role } from '@/types';
  */
 function useChat() {
   const settings = useUserSettings();
-  const [currChat, dispatch] = useReducer(chatReducer, {...defaultChat(settings.systemMessage), id: 0});
+  const [currChat, dispatch] = useReducer(chatReducer, initialChat);
 
   // Ref so the callbacks never need to refresh to just compare with
   const chatIdRef = useRef<number>(currChat.id);
@@ -38,8 +44,12 @@ function useChat() {
     return () => { isLatestFetch = false };
   }, []);
 
-  const newChat = useCallback(async() => {
-    const newChat = defaultChat(settings.systemMessage);
+  const newChat = useCallback(async(firstMsg: string) => {
+    const newChat = {
+      ...defaultChat(settings.systemMessage),
+      title: firstMsg?.length <= 20 ? firstMsg : firstMsg.substring(0, 20),
+      preview: firstMsg?.length <= 25 ? firstMsg : firstMsg.substring(0, 25),
+    }
     const res = await addDBChat(newChat);
     if (!res) {
       console.error("newChat() failed!");
@@ -136,17 +146,13 @@ function useChat() {
     }
   } ,[dispatch]);
 
-  // New Age
+
   const sendMessage = useCallback(async(chat: Chat, message: string) => {
     const sentChatId = chat.id;
     const lastMessage = chat.messages.at(-1);
     let messageId = lastMessage ? lastMessage.id + 1 : 1;
+    const newMessage = getUserMsg(messageId, message)
 
-    const newMessage = {
-      id: messageId,
-      role: "user" as Role,
-      content: message,
-    }
     chat.messages.push(newMessage);
     chat.status = "SENDING";
 
@@ -167,10 +173,8 @@ function useChat() {
       console.warn("editMessage() failed getting chat - might be deleted.");
       return;
     }
-    const editedMessages = getMessagesAfterEdit(chat.messages, messageId, content);
-    const chatTokens = editedMessages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
-    chat.messages = editedMessages;
-    chat.tokens = chatTokens;
+
+    const editedChat = getChatAfterEditingMessage(chat, messageId, content);
     chat.status = "SENDING";
 
     const updated = await updateDBChat(chat);
@@ -180,7 +184,7 @@ function useChat() {
     if (updated === chatIdRef.current) {
       dispatch({type: 'set-chat', chat: chat});
     }
-    sendToOpenAI(chat.id, messageId, editedMessages);
+    sendToOpenAI(chat.id, messageId, editedChat.messages);
   }, [dispatch]);
 
   const resendMessage = useCallback(async(chatId: number) => {
@@ -189,12 +193,11 @@ function useChat() {
       console.warn("resendMessage() failed getting chat - might be deleted.");
       return;
     }
+
     const lastUserMessage = chat.messages.findLast((message) => message.role === "user");
-    const index = lastUserMessage ? chat.messages.indexOf(lastUserMessage) : chat.messages.length - 1;
-    const trimmed = chat.messages.slice(0, index + 1)
-    const chatTokens = trimmed.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
-    chat.messages = trimmed;
-    chat.tokens = chatTokens;
+    const lastMessageId = lastUserMessage ? lastUserMessage.id : chat.messages.length - 1;
+    const editedChat = getChatAfterEditingMessage(chat, lastMessageId, lastUserMessage?.content);
+
     chat.status = "SENDING";
 
     const updated = await updateDBChat(chat);
@@ -204,17 +207,12 @@ function useChat() {
     if (updated === chatIdRef.current) {
       dispatch({type: 'set-chat', chat: chat});
     }
-    sendToOpenAI(chat.id, lastUserMessage?.id ?? chat.messages.length, trimmed);
+    sendToOpenAI(chat.id, lastMessageId, editedChat.messages);
   }, [dispatch]);
 
   const sendToOpenAI = useCallback(async(sentChatId: number, messageId: number, messages: ChatMessage[]) => {
     const resMsgId = messageId + 1;
-
-    const resMsg : ChatMessage = {
-      id: resMsgId,
-      role: "assistant" as Role,
-      content: "",
-    }
+    const resMsg = getChatMsg(resMsgId, "");
     await addMessage(sentChatId, resMsg);
 
     async function readCB(partial: string) {
@@ -223,32 +221,24 @@ function useChat() {
 
     const res = await sendChatStream(settings.apiKey ?? "", settings.model, messages, readCB);
     if (res.status === "SUCCESS") {
-      const gptResponse = res.data;
-      if (gptResponse) {
+      const openAIResponse = res.data;
+      if (openAIResponse) {
         const sentChat = await getDBChat(sentChatId);
         if (!sentChat) {
           console.error("sendToOpenAI() failed getting chat - might be deleted");
           setStatus(sentChatId, "ERROR");
           return;
         };
-        resMsg.content = gptResponse;
 
-        const sent = messages.at(-1);
-        const promptTokens = sent ? countTokens(sent) : 0;
-        const completionTokens = countTokens(resMsg);
-
-        const lastUserMsg = sentChat.messages.findLast((msg) => msg.role === "user");
-        if (lastUserMsg) lastUserMsg.tokens = promptTokens;
-        resMsg.tokens = completionTokens;
-        resMsg.partial = "";
-        sentChat.messages[sentChat.messages.length - 1] = resMsg;
-        sentChat.tokens = (sentChat.tokens ?? 0) + promptTokens + completionTokens;
+        addOpenAIResponseToChat(sentChat, resMsg, openAIResponse);
         sentChat.status = "READY";
 
         if (!await updateDBChat(sentChat)) {
           console.error("sendToOpenAI() failed to update chat - might be deleted");
         }
-        dispatch({type: 'set-chat', chat: sentChat});
+        if (chatIdRef.current === sentChatId) {
+          dispatch({type: 'set-chat', chat: sentChat});
+        }
       } else {
         setStatus(sentChatId, "READY");
       }
@@ -262,17 +252,17 @@ function useChat() {
 
       const last = sentChat.messages.at(-1)
       if (last) last.partial = "";
+      setChatError(sentChat, res.data);
 
-      const errData = res.data;
-      const errMsg = errData.error ? errData.error.message : errData;
-      sentChat.latestError = String(errMsg);
-      sentChat.status = "ERROR";
       if (!await updateDBChat(sentChat)) {
         console.error("sendToOpenAI() failed to update chat on error - might be deleted");
       }
-      dispatch({type: 'set-chat', chat: sentChat});
+      if (chatIdRef.current === sentChatId) {
+        dispatch({type: 'set-chat', chat: sentChat});
+      }
     }
   }, [dispatch])
+
 
   return {
     chat: currChat,
@@ -377,6 +367,52 @@ function blankNewChat() : Chat {
   }
 }
 
+function getUserMsg(messageId: number, content: string) : ChatMessage {
+  return {
+    id: messageId,
+    role: "user" as Role,
+    content: content,
+  }
+}
+
+function getChatMsg(messageId: number, content: string) : ChatMessage {
+  return {
+    id: messageId,
+    role: "assistant" as Role,
+    content: content,
+  }
+}
+
+function addOpenAIResponseToChat(chat: Chat, resMsg: ChatMessage, response: string) {
+  resMsg.content = response;
+  resMsg.partial = "";
+  updateChatTokens(chat, resMsg);
+  chat.messages[chat.messages.length - 1] = resMsg;
+
+  return chat;
+}
+
+function updateChatTokens(chat: Chat, resMsg: ChatMessage) {
+  const lastUserMsg = chat.messages.findLast((msg) => msg.role === "user");
+  const promptTokens = countTokens(lastUserMsg);
+  const completionTokens = countTokens(resMsg);
+
+  if (lastUserMsg) lastUserMsg.tokens = promptTokens;
+  resMsg.tokens = completionTokens;
+  chat.tokens = (chat.tokens ?? 0) + promptTokens + completionTokens;
+
+  return chat;
+}
+
+function getChatAfterEditingMessage(chat: Chat, toEditId: number, toEditContent: string | undefined) {
+  const editedMessages = getMessagesAfterEdit(chat.messages, toEditId, toEditContent);
+  const chatTokens = editedMessages.reduce((accum, message) => accum + (message.tokens ?? 0) , 0);
+  chat.messages = editedMessages;
+  chat.tokens = chatTokens;
+
+  return chat;
+}
+
 function getMessagesAfterEdit(messages: ChatMessage[], messageId: number, content: string | undefined) {
   // Delete all after the target message (same as ChatGPT)
   const targetMessage = messages.findLast((message) => message.id === messageId);
@@ -396,6 +432,15 @@ function getMessagesAfterEdit(messages: ChatMessage[], messageId: number, conten
 
   return newMessages;
 }
+
+function setChatError(chat: Chat, errData: any) {
+  const errMsg = errData.error ? errData.error.message : errData;
+  chat.latestError = String(errMsg);
+  chat.status = "ERROR";
+
+  return chat;
+}
+
 
 export {
   useChat,
