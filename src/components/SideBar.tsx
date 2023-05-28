@@ -111,6 +111,7 @@ export default function SideBar({
             </Fragment>
           )}
         </ol>
+        <ChatStorageBar/>
       </nav>
     </>
   )

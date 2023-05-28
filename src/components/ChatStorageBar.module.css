@@ -1,0 +1,63 @@
+.outer-container {
+  padding: 0.3rem 1rem;
+}
+
+.inner-container {
+  padding-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-white);
+  border-top: 1px solid var(--grey-light-transparent-1);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  margin: 0.5rem 0;
+
+  appearance: none;
+  background: var(--grey-light-3);
+  border: none;
+  border-radius: 4px;
+}
+.progress-bar::-webkit-progress-bar {
+  background-color: var(--grey-light-3);
+  border-radius: 4px;
+}
+.progress-bar::-moz-progress-bar {
+  background-color: var(--grey-light-3);
+  border-radius: 4px;
+}
+
+.progress-bar::-webkit-progress-value {
+  background-color: var(--progress-ok);
+  border-radius: 4px;
+}
+.progress-bar::-moz-progress-bar {
+  background-color: var(--progress-ok);
+  border-radius: 4px;
+}
+
+.warning::-webkit-progress-value {
+  background-color: var(--progress-warning);
+}
+.warning::-moz-progress-bar {
+  background-color: var(--progress-warning);
+}
+
+.danger::-webkit-progress-value {
+  background-color: var(--progress-danger);
+}
+.danger::-moz-progress-bar {
+  background-color: var(--progress-danger);
+}
+
+.usage-warning {
+  margin-bottom: 0.5rem;
+  white-space: pre-wrap;
+}
+.high-usage {
+  color: var(--text-warning-dark-theme);
+}
+.full-usage {
+  color: var(--text-error-dark-theme);
+}
