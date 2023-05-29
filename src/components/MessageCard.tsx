@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw'
@@ -6,6 +6,8 @@ import GrowingTextArea from '@/components/GrowingTextArea';
 import { ChatMessage, Theme } from "@/types";
 import styles from "./MessageCard.module.css";
 
+const OPEN_TIME = 500;
+const BLINK_TIME = 200;
 
 export interface MessageCardProps {
   theme: Theme;
@@ -20,6 +22,23 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
   const [isEditing, setIsEditing] = useState(false);
   const [editedMsg, setEditedMsg] = useState(message.content);
   const editTxtArea = useRef<HTMLTextAreaElement>(null);
+
+  // Use ref. We don't dispatch more state changes on each stream read callback.
+  const blinkRef = useRef(false);
+
+  useEffect(() => {
+    let isLatest = true;
+
+    function blink() {
+      if (!isLatest) return;
+
+      setTimeout(blink, (blinkRef.current ? OPEN_TIME : BLINK_TIME));
+      blinkRef.current = !blinkRef.current;
+    }
+    blink();
+
+    return () => { isLatest = false };
+  }, [])
 
   useEffect(() => {
     editTxtArea?.current?.focus();
@@ -57,11 +76,20 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
   }
 
   function renderMessage() {
+    let content;
+    if (message.content.trim().length > 0) {
+      content = message.content
+    } else if (message.partial) {
+      content = message.partial + (blinkRef.current ? "" : "█");
+    } else {
+      content = (blinkRef.current ? "" : "█");
+    }
+
     return (
       <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
                      components={markdownComps}
                      linkTarget="_new">
-        { message.content.length > 0 ? message.content : (message.partial ?? "")}
+        { content }
       </ReactMarkdown>
     )
   }
