@@ -112,3 +112,12 @@ html {
 .scroll-dark::-webkit-scrollbar-track { /* Background */
   background: var(--grey-dark-2);
 }
+
+.dark-theme-bg {
+  background: var(--grey-dark-2);
+}
+
+/* Lighting up icons on hover. Doesn't work for BLACK things -- add hue-rotate */
+.hover-brighten:hover {
+  filter: brightness(3);
+}

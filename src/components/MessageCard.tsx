@@ -106,11 +106,13 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
         </div>
         <div className={styles["buttons-container"]}>
         { message.role === "user"
-            && <button onClick={editMessageCB} className={styles["action-button"]}>
-                <img src={`edit${darkTheme ? "-light" : ""}.svg`} alt="edit"/>
+            && <button onClick={editMessageCB}
+                       className={`${styles["action-button"]} ${darkTheme ? "hover-brighten" : ""}`}>
+                  <img src={`edit${darkTheme ? "-light" : ""}.svg`} alt="edit"/>
                </button>
         }
-          <button onClick={copyTextCB} className={styles["action-button"]}>
+          <button onClick={copyTextCB}
+                  className={`${styles["action-button"]} ${darkTheme ? "hover-brighten" : ""}`}>
             <img src={`clipboard${darkTheme ? "-light" : ""}.svg`} alt="copy"/>
           </button>
         </div>

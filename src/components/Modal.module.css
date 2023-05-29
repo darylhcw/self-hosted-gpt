@@ -10,6 +10,7 @@
   align-items: center;
 
   background: rgba(52,53,65,.9);
+  z-index: 99;
 }
 
 .container {

@@ -1,6 +1,7 @@
 export class Constants {
   // CSS
   static readonly MODAL_MAIN_ELEM = "MAIN_WRAPPER";
+  static readonly BG_DARK_CLASS = "dark-theme-bg";
   static readonly SCROLLBAR_DARK_CLASS = "scroll-dark";
 
   // Models

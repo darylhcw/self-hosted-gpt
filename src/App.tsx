@@ -41,8 +41,10 @@ export default function App() {
     // and setting class here don't work on Firefox...so used <html> for both.
     if (settings.theme === "DARK") {
       document.documentElement.classList.add(Constants.SCROLLBAR_DARK_CLASS);
+      document.body.classList.add(Constants.BG_DARK_CLASS);
     } else {
       document.documentElement.classList.remove(Constants.SCROLLBAR_DARK_CLASS);
+      document.body.classList.remove(Constants.BG_DARK_CLASS);
     }
   }, [settings.theme]);
 
@@ -116,7 +118,7 @@ export default function App() {
 
   function renderScrollToBottomButton() {
     return (
-      <button className={`${styles["scroll-bottom"]} ${settings.theme == "DARK" ? styles["dark-theme"] : ""}`}
+      <button className={`${styles["scroll-bottom"]} ${settings.theme == "DARK" ? styles["dark"] : ""}`}
               onClick={() => scrollToBottom()}>
         <img src={`arrow-down${ settings.theme == "DARK" ? "-light" : ""}.svg`}/>
       </button>
@@ -130,14 +132,14 @@ export default function App() {
                setCurrentChat={setCurrentChat}
                setChatTitle={chatColl.setChatTitle}
                deleteChat={deleteChat}/>
-      <main className={`${styles.main} ${settings.theme == "DARK" ? styles["bg-dark"] : ""}`}
+      <main className={`${styles.main} ${settings.theme == "DARK" ? styles.dark : ""}`}
             ref={mainRef}>
         <div className={styles.messages}>
           <ChatMessages chat={currentChat} editMessage={editCallback}/>
         </div>
-        <div className={styles.tokens}>
+        <div className={`${styles.tokens} ${settings.theme == "DARK" ? styles.dark : ""}`}>
           { currentChat.tokens && overContextLimit(settings.model, currentChat.tokens)
-            && <p className={`${styles.warning} ${settings.theme == "DARK" ? styles["dark-theme"] : ""}`}>
+            && <p className={`${styles.warning} ${settings.theme == "DARK" ? styles.dark : ""}`}>
                 WARNING! OVER CONTEXT LIMIT
               </p>
           }

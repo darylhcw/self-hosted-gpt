@@ -32,6 +32,12 @@
 .button:focus {
   outline: var(--blue-focus-outline);
 }
+.button:hover {
+  background: var(--grey-light-2);
+}
+.button.dark:hover {
+  background: var(--grey-dark-1);
+}
 
 
 /* Mainly so the scrollbar is "inside"

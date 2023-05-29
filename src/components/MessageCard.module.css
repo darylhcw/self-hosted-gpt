@@ -67,7 +67,10 @@
   width: fit-content;
 
   padding: 0;
-  margin-right: 4px;
+  margin-right: 4px;;
+}
+.action-button:hover {
+  filter: invert(0.7)
 }
 
 .tokens {

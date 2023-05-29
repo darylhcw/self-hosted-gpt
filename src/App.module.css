@@ -9,8 +9,7 @@
   flex-direction: column;
   justify-content: space-between;
 }
-
-.bg-dark {
+.main.dark {
   background: var(--grey-dark-2);
   color: var(--text-white);
 }
@@ -20,13 +19,16 @@
 }
 
 .tokens {
-  margin-top: 1rem;
+  padding-top: 1rem;
   text-align: center;
+}
+.tokens.dark {
+  color: var(--text-white);
 }
 .warning {
   color: var(--text-warning-light-theme);
 }
-.warning.dark-theme {
+.warning.dark {
   color: var(--text-warning-dark-theme);
 }
 
@@ -43,13 +45,19 @@
   width: 36px;
   height: 36px;
 
-  background: var(--grey-light-1);
+  background: white;
   border: 1px solid var(--grey-light-2);
   border-radius: 50%;
 }
-.scroll-bottom.dark-theme {
+.scroll-bottom.dark {
   background: var(--grey-dark-2);
   border-color: var(--grey-light-transparent-1);
+}
+.scroll-bottom:hover {
+  background: var(--grey-light-1);
+}
+.scroll-bottom.dark:hover {
+  background: var(--grey-dark-1);
 }
 .scroll-bottom img {
   width: 20px;

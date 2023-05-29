@@ -8,6 +8,8 @@
 
   display: flex;
   flex-direction: column;
+
+  z-index: 1;
 }
 /* Hide chat scroll */
 .container:not(:hover) .chats-container::-webkit-scrollbar-thumb {
@@ -19,6 +21,9 @@
   display: flex;
   margin-bottom: 1rem;
   padding: 0 0.7rem;
+}
+.top-buttons button:hover{
+  background: var(--grey-dark-2);
 }
 
 .new {

@@ -43,6 +43,12 @@
   height: 100%;
   aspect-ratio: 1/1;
 }
+.regenerate:hover {
+  background: var(--grey-light-1);
+}
+.regenerate.dark-theme:hover {
+  background: var(--grey-dark-1);
+}
 
 .send-container {
   position: relative;

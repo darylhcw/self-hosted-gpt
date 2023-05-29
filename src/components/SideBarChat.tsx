@@ -62,11 +62,11 @@ export default function SideBarChat({
         </div>
       </button>
       <button onClick={editTitleCB}
-              className={styles["action-button"]}>
+              className={`${styles["action-button"]} hover-brighten`}>
         <img src={isEditingTitle ? "correct-light.svg" : "edit-light.svg"}/>
       </button>
       <button onClick={isEditingTitle ? cancelEditCB : deleteCB}
-              className={styles["action-button"]}>
+              className={`${styles["action-button"]} hover-brighten`}>
         <img src={isEditingTitle ? "cross-light.svg" : "trash-light.svg"}/>
       </button>
     </div>
