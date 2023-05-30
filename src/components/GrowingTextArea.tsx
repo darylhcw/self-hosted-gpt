@@ -4,6 +4,7 @@ import { useCombinedRefs } from '@/hooks/useCombinedRefs';
 export interface GrowingTextAreaProps {
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
   onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
+  disabled?: boolean;
   value?: string;
   placeholder?: string;
 }
@@ -30,6 +31,7 @@ const GrowingTextArea = forwardRef<TxtAreaRef, GrowingTextAreaProps>((props, for
               onKeyDown={props.onKeyDown}
               value={props.value}
               placeholder={props.placeholder}
+              disabled={props.disabled ? true : false}
               rows={1}/>
   )
 });

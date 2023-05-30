@@ -123,6 +123,7 @@
 }
 
 .apikey-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -135,6 +136,7 @@
 }
 
 .apikey-input {
+  width: clamp(250px, 50ch, 100%);
   padding: 0.3rem;
   margin-bottom: 0.25rem;
 

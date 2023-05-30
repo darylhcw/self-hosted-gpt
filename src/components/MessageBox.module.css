@@ -90,3 +90,6 @@
   width: 24px;
   height: 24px;
 }
+.send:disabled {
+  cursor: not-allowed;
+}

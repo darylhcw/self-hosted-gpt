@@ -62,6 +62,9 @@ export default function MessageBox({
   const debouncedResend = useDebounce(resendMessage, 1000);
 
   function allowSend() {
+    if (!settings.apiKey) return false;
+    if (settings.apiKey.trim().length <= 0) return false  ;
+
     return !isSending && status !== "SENDING";
   }
 
@@ -91,7 +94,8 @@ export default function MessageBox({
         <GrowingTextArea onChange={handleChange}
                          onKeyDown={handleKeyPress}
                          value={message}
-                         placeholder="Send a message."/>
+                         placeholder="Send a message."
+                         disabled={!allowSend()}/>
         <button onClick={status == "ERROR" ? debouncedResend : debouncedSend}
                 className={styles.send}
                 disabled={!allowSend()}>

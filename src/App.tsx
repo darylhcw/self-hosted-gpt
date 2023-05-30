@@ -120,7 +120,8 @@ export default function App() {
     return (
       <button className={`${styles["scroll-bottom"]} ${settings.theme == "DARK" ? styles["dark"] : ""}`}
               onClick={() => scrollToBottom()}>
-        <img src={`arrow-down${ settings.theme == "DARK" ? "-light" : ""}.svg`}/>
+        <img src={`arrow-down${ settings.theme == "DARK" ? "-light" : ""}.svg`}
+             alt="Scroll to bottom"/>
       </button>
     )
   }

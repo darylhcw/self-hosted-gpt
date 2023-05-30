@@ -50,7 +50,7 @@ export default function SideBarChat({
     <div className={styles.container}>
       <button onClick={() => setCurrentChat(header.id)}
               className={styles.chat}>
-        <img src="chat-bubble-light.svg"/>
+        <img src="chat-bubble-light.svg" alt="chat-bubble"/>
         <div className={styles["chat-name"]}>
           { isEditingTitle
               ? <GrowingTextArea ref={titleTxtArea}
@@ -63,11 +63,13 @@ export default function SideBarChat({
       </button>
       <button onClick={editTitleCB}
               className={`${styles["action-button"]} hover-brighten`}>
-        <img src={isEditingTitle ? "correct-light.svg" : "edit-light.svg"}/>
+        <img src={isEditingTitle ? "correct-light.svg" : "edit-light.svg"}
+             alt={isEditingTitle ? "Confirm" : "Edit"}/>
       </button>
       <button onClick={isEditingTitle ? cancelEditCB : deleteCB}
               className={`${styles["action-button"]} hover-brighten`}>
-        <img src={isEditingTitle ? "cross-light.svg" : "trash-light.svg"}/>
+        <img src={isEditingTitle ? "cross-light.svg" : "trash-light.svg"}
+             alt={isEditingTitle ? "Cancel" : "Delete"}/>
       </button>
     </div>
   )

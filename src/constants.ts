@@ -20,15 +20,19 @@ export class Constants {
   // Errors
   static readonly DEFAULT_ERR_MSG = "There was an error generating the response."
 
-  static readonly DB_INIT_ERR_MSG = "There was an error opening IndexedDB. Site may function incorrectly! \
-                                      Please ensure your browser allows this site to store data locally."
-  static readonly DB_ERR_MSG = "There was an error saving/reading from IndexedDB. Site may function incorrectly! \
-                                Please ensure your browser allows this site to store data locally."
+  static readonly DB_INIT_ERR_MSG = "There was an error opening IndexedDB. Site may function incorrectly! \nPlease ensure your browser allows this site to store data locally."
+  static readonly DB_ERR_MSG = "There was an error saving/reading from IndexedDB. Site may function incorrectly! \nPlease ensure your browser allows this site to store data locally."
 
   // DB
   static readonly DB_NAME = "SelfHostGPT";
   static readonly DB_VERSION = 2;
   static readonly DB_CHATS_STORE = "chats";
+
+  // Default Messages (When you start new chat)
+  static readonly TITLE = "Self-Host GPT";
+  static readonly NO_API_KEY_MSG1 = "Please ensure you have entered your OpenAI APIKey in the settings"
+  static readonly NO_API_KEY_MSG2 = "found at the top left of the page."
+  static readonly NO_API_KEY_SELF_HOST = "If self-hosting, ensure it is set in the .env file."
 
   // Other
   static readonly BLANK_CHAT_ID = -1;  // Something our real chat will never have.
