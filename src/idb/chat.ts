@@ -1,8 +1,7 @@
-import getDb from './idb';
+import getDB from './idb';
 import { Constants } from '@/constants';
 import { DBChat, Chat } from '@/types';
 
-const DB = await getDb();
 const CHATS_STORE = Constants.DB_CHATS_STORE;
 
 
@@ -11,6 +10,7 @@ const CHATS_STORE = Constants.DB_CHATS_STORE;
  ********************************************/
 
 async function addChat(chat: DBChat) : Promise<number| undefined> {
+  const DB = await getDB();
   const tx = DB.transaction(CHATS_STORE, "readwrite");
   const res = await tx.store.add(chat);
 
@@ -18,6 +18,7 @@ async function addChat(chat: DBChat) : Promise<number| undefined> {
 }
 
 async function getChat(id: number) : Promise<Chat | undefined>{
+  const DB = await getDB();
   const tx = DB.transaction(CHATS_STORE);
   const res = await tx.store.get(id);
 
@@ -25,6 +26,7 @@ async function getChat(id: number) : Promise<Chat | undefined>{
 }
 
 async function updateChat(chat: Chat) {
+  const DB = await getDB();
   const tx = DB.transaction(CHATS_STORE, "readwrite");
   const res = await tx.store.put(chat);
 
@@ -32,6 +34,7 @@ async function updateChat(chat: Chat) {
 }
 
 async function deleteChat(id: number) {
+  const DB = await getDB();
   const tx = DB.transaction(CHATS_STORE, "readwrite");
   await tx.store.delete(id);
 
@@ -89,6 +92,7 @@ async function getDBChat(chatId: number) {
 }
 
 async function getLatestDBChatId() {
+  const DB = await getDB();
   const tx = DB.transaction(CHATS_STORE);
   const index = tx.store.index("createdAt");
   const cursor = await index.openCursor(null, "prev");

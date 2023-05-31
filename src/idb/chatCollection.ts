@@ -7,13 +7,13 @@ import { Chat, ChatCollection } from '@/types';
  * - Header information for all chats to use in sidebar.
  ********************************************/
 
-const DB = await getDB();
 const CHATS_STORE = Constants.DB_CHATS_STORE;
 
 
 // Gets all the chats and puts them to a collection.
 // Minimize calling this if possible and only append/remove once fetched.
 async function getChatCollection() {
+  const DB = await getDB();
   const coll : ChatCollection = [];
 
   const tx = DB.transaction(CHATS_STORE);
