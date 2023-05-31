@@ -261,7 +261,7 @@ function useChat() {
         dispatch({type: 'set-chat', chat: sentChat});
       }
     }
-  }, [dispatch])
+  }, [dispatch, settings.apiKey])
 
 
   return {
