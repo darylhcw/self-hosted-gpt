@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { overContextLimit, getModels } from '@/api/chat';
+import TopBar from '@/components/TopBar';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
 import MessageBox from '@/components/MessageBox';
@@ -12,6 +13,9 @@ import styles from './App.module.css';
 
 
 export default function App() {
+  // Note this only works when it's mobile size!
+  const [sideBarOpen, setSideBarOpen] = useState(false);
+
   const mainRef = useRef<HTMLElement>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState(true)
 
@@ -128,12 +132,27 @@ export default function App() {
 
   return (
     <div id={Constants.MODAL_MAIN_ELEM} className={styles.wrapper}>
-      <SideBar coll={collection}
-               startNewChat={startNewChat}
-               setCurrentChat={setCurrentChat}
-               setChatTitle={chatColl.setChatTitle}
-               deleteChat={deleteChat}/>
-      <main className={`${styles.main} ${settings.theme == "DARK" ? styles.dark : ""}`}
+      <div className={styles.sidebar}
+           style={ sideBarOpen ? {display: "flex"} : {}}>
+        <SideBar coll={collection}
+                startNewChat={startNewChat}
+                setCurrentChat={setCurrentChat}
+                setChatTitle={chatColl.setChatTitle}
+                deleteChat={deleteChat}/>
+        { sideBarOpen
+            && <button onClick={ () => {setSideBarOpen(false)} }
+                       className={styles["close-sidebar-button"]}>
+                  &#10006;
+               </button>
+        }
+      </div>
+      <div className={styles.topbar}>
+          <TopBar toggleSideBar={ () => setSideBarOpen(!sideBarOpen) }
+                  newChat={ () => startNewChat()}
+                  title={currentChat?.title}/>
+      </div>
+      <main className={`${styles.main} ${settings.theme == "DARK" ? styles.dark : ""} \
+                        ${sideBarOpen ? styles["main-overlay"] : ""}`}
             ref={mainRef}>
         <div className={styles.messages}>
           <ChatMessages chat={currentChat} editMessage={editCallback}/>

@@ -5,7 +5,7 @@
 
 .container-inner {
   width: var(--messages-max-w);
-  max-width: var(--message-max-w);
+  max-width: 100%;
   margin: 0 auto;
   padding: 1rem;
   display: flex;
@@ -118,8 +118,9 @@
   border: none;
 }
 
-@media (max-width: var(--small-screen)) {
+@media (max-width: 1100px) {
   .container-inner {
     min-width: 0;
+    width: 100%;
   }
 }

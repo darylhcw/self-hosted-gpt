@@ -102,3 +102,9 @@
 .chats-container::-webkit-scrollbar-track {
   background: var(--grey-dark-3);
 }
+
+@media (max-width: 336px) {
+  .container {
+    width: var(--sidebar-w-tiny-screen);
+  }
+}

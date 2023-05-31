@@ -1,4 +1,6 @@
 .container {
+  max-width: min(100%, 800px);
+  width: 100%;
   padding: 1rem;
   background: white;
   border: 1px solid var(--grey-light-2);
@@ -45,6 +47,7 @@
  */
 .inner-container {
   max-height: 90vh;
+  width: 100%;
   padding: 2px;
   position: relative;
 
@@ -105,14 +108,18 @@
   transform: translateX(100%);
 }
 
-.model {
+.model label {
+  margin-right: 0.5rem;
+}
+.model select {
   padding: 0.3rem;
-  margin-left: 0.5rem;
+  min-width: 0;
+
   font-size: 1rem;
   border-radius: var(--settings-btn-radius);
   border-color: var(--grey-light-2);
 }
-.model.dark {
+.model.dark select {
   color: var(--text-white);
   background: var(--grey-dark-2);
   border-color: var(--grey-light-3);
@@ -136,7 +143,7 @@
 }
 
 .apikey-input {
-  width: clamp(250px, 50ch, 100%);
+  width: min(50ch, 100%);
   padding: 0.3rem;
   margin-bottom: 0.25rem;
 
@@ -166,13 +173,14 @@ a:focus {
 }
 
 .sysmsg-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
 .sysmsg{
-  width: clamp(250px, 50rem, 90vw);
+  width: 100%;
   padding: 0.3rem;
   margin: 0.25rem 0;
 

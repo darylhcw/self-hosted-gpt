@@ -1,6 +1,6 @@
 .container {
   width: 100%;
-  padding: 2rem 0;
+  padding: 2rem 1rem;
 
   display: flex;
   flex-direction: column;
@@ -51,11 +51,12 @@
 }
 
 .send-container {
+  width: min(100%, 900px);
   position: relative;
 }
 .send-container textarea {
   max-height: 20rem;
-  width: 650px;
+  width: 100%;
   padding: 0.6rem 0.8rem;
   padding-right: 1.2rem;
 

@@ -1,5 +1,24 @@
 .wrapper {
+  min-height: 100%;
   height: 100%;
+}
+
+.topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+}
+.sidebar {
+  position: relative;
+}
+.close-sidebar-button {
+  padding: 0.5rem;
+  padding-top: 0.7rem;
+  position: fixed;
+  left: var(--sidebar-w);
+  color: var(--text-white);
+  font-size: 1.6rem;
+  z-index: 1;
 }
 
 .main {
@@ -12,6 +31,15 @@
 .main.dark {
   background: var(--grey-dark-2);
   color: var(--text-white);
+}
+.main-overlay::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: var(--modal-overlay);
 }
 
 .messages {
@@ -40,8 +68,8 @@
 
 .scroll-bottom {
   position: fixed;
-  bottom: min(5rem, 100px);
-  right: min(3rem, 50px);
+  bottom: min(6rem, 200px);
+  right: min(1rem, 20px);
   width: 36px;
   height: 36px;
 
@@ -62,4 +90,23 @@
 .scroll-bottom img {
   width: 20px;
   height: 20px;
+}
+
+
+@media (max-width: 768px) {
+  .topbar {
+    display: flex;
+  }
+  .sidebar {
+    display: none;
+  }
+  .main {
+    margin: 0 auto;
+    max-height: calc(100% - 3.5rem);
+  }
+}
+@media (max-width: 336px) {
+  .close-sidebar-button {
+    left: var(--sidebar-w-tiny-screen);
+  }
 }

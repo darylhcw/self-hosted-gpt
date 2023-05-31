@@ -74,14 +74,17 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
             </button>
             {darkTheme ? "Dark" : "Light"}
           </div>
-          <div>
+
+          <div className={`${styles.model} ${darkThemeClass()}`}>
             <label htmlFor="model-input">Model:</label>
-            <select id="model-input" className={`${styles.model} ${darkThemeClass()}`}
-                    value={settings.model} onChange={handleModelChange}>
+            <select id="model-input"
+                    value={settings.model}
+                    onChange={handleModelChange}>
               <option value={Constants.GPT_3_5}>GPT-3.5-Turbo</option>
-              <option value={Constants.GPT_4}>{"GPT-4 (Authorization from OpenAI Required)"}</option>
+              <option value={Constants.GPT_4}>GPT-4</option>
             </select>
           </div>
+
           <div className={styles["apikey-container"]}>
             <label htmlFor="apikey-input">
               {"API Key (Is this safe? "}
@@ -113,6 +116,7 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
               </button>
             </div>
           </div>
+
           <div className={styles["sysmsg-container"]}>
             <label htmlFor="sysmsg-input">System Message - (Base Context for Chat)</label>
             <textarea id="sysmsg-input"
@@ -125,6 +129,7 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
               Reset to Default
             </button>
           </div>
+
         </div>
       </div>
     </Modal>

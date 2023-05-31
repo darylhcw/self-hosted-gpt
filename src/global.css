@@ -1,8 +1,12 @@
 :root {
   --large-screen: 2560px;
-  --small-screen: 800px;
+  --small-screen: 768px;
+  --sidebar-w-tiny-screen: 250px;
   --sidebar-w: 300px;
-  --messages-max-w: 800px;
+  --messages-max-w: 1000px;
+
+  --settings-btn-radius: 6px;
+  --scrollbar-w: 6px;
 
   --text-white: #ECECF1;
   --text-grey:  #8E8E94;
@@ -34,8 +38,7 @@
   --grey-dark-2: #343541;
   --grey-dark-3:#202123;
 
-  --settings-btn-radius: 6px;
-  --scrollbar-w: 6px;
+  --modal-overlay: rgba(52,53,65,.9);
 }
 
 html,

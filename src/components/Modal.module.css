@@ -9,7 +9,7 @@
   justify-content: center;
   align-items: center;
 
-  background: rgba(52,53,65,.9);
+  background: var(--modal-overlay);
   z-index: 99;
 }
 
@@ -24,8 +24,8 @@
   margin: 0 80px;
 }
 
-@media (max-width: var(--small-screen)) {
+@media (max-width: 768px) {
   .container {
-    margin: 0 24px;
+    margin: 0.6rem;
   }
 }
