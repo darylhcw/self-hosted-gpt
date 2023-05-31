@@ -36,7 +36,7 @@ function UserSettingsProvider({children} : {children: React.ReactNode}) {
 function initialUserSettings() {
   const settings = LSProxy.getUserSettings();
   if (settings) {
-    settings.apiKey = ENV_APIKEY ?? "";
+    settings.apiKey = ENV_APIKEY ?? settings.apiKey;
     return settings;
   }
 
