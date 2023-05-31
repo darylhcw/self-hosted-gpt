@@ -34,9 +34,11 @@ export default function Modal({children, closeModal} : ModalProps) {
     <>
       { createPortal(
           <div id={MODAL_ID} className={styles.overlay}
-               onClick={closeModal}
+               onMouseDown={closeModal}
                onKeyDown={handleKeydown}>
-            <div className={styles.container} onClick={preventBubbleUp}>
+            <div className={styles.container}
+                 onMouseDown={preventBubbleUp}
+                 onClick={preventBubbleUp}>
               {children}
             </div>
           </div>,
