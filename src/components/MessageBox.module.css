@@ -80,6 +80,12 @@
 .send-container textarea:focus {
   outline: none;
 }
+.red-placeholder textarea::placeholder {
+  color: var(--text-error-light-theme);
+}
+.red-placeholder.dark-theme textarea::placeholder {
+  color: var(--text-error-dark-theme);
+}
 
 .send {
   position: absolute;

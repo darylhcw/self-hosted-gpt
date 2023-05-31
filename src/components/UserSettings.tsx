@@ -54,7 +54,6 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
     return darkTheme ? styles.dark : "";
   }
 
-
   return (
     <Modal closeModal={closeSettings}>
       <div className={`${styles.container} ${darkThemeClass()}`}>

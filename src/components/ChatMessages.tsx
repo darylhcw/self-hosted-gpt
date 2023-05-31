@@ -27,7 +27,8 @@ export default function ChatMessages({editMessage, chat} : ChatMessagesProps) {
             if (message.role === 'system') return null;
 
             let errMsg;
-            if (index === chat.messages.length - 1 && chat.status === "ERROR") {
+            const last = (index === chat.messages.length - 1);
+            if (last && chat.status === "ERROR") {
               errMsg = Constants.DEFAULT_ERR_MSG;
               if (chat.latestError) {
                 errMsg = errMsg + "\n\n" + chat.latestError;
@@ -37,7 +38,8 @@ export default function ChatMessages({editMessage, chat} : ChatMessagesProps) {
                                         theme={settings.theme}
                                         message={message}
                                         editMessage={editMessage}
-                                        errMsg={errMsg}/>);
+                                        errMsg={errMsg}
+                                        last={last}/>);
           }
        )}
       </>

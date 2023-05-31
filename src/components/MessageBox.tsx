@@ -23,6 +23,7 @@ export default function MessageBox({
   const settings = useUserSettings();
   const darkTheme = settings.theme === "DARK";
   const themeClass = darkTheme ? styles["dark-theme"] : "";
+  const hasAPIKey = settings.apiKey && settings.apiKey.trim().length > 0;
 
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState("");
@@ -62,10 +63,7 @@ export default function MessageBox({
   const debouncedResend = useDebounce(resendMessage, 1000);
 
   function allowSend() {
-    if (!settings.apiKey) return false;
-    if (settings.apiKey.trim().length <= 0) return false  ;
-
-    return !isSending && status !== "SENDING";
+    return hasAPIKey && !isSending && status !== "SENDING";
   }
 
   function allowResend() {
@@ -90,11 +88,11 @@ export default function MessageBox({
               </button>
       }
 
-      <div className={`${styles["send-container"]} ${themeClass}`}>
+      <div className={`${styles["send-container"]} ${themeClass} ${hasAPIKey ? "" : styles["red-placeholder"]}`}>
         <GrowingTextArea onChange={handleChange}
                          onKeyDown={handleKeyPress}
                          value={message}
-                         placeholder="Send a message."
+                         placeholder={hasAPIKey ? "Send a message." : "MISSING APIKey. Please check settings!"}
                          disabled={!allowSend()}/>
         <button onClick={status == "ERROR" ? debouncedResend : debouncedSend}
                 className={styles.send}

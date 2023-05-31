@@ -14,9 +14,10 @@ export interface MessageCardProps {
   message: ChatMessage;
   errMsg?: string;
   editMessage: (messageId: number, content: string) => void;
+  last?: boolean;
 }
 
-export default function MessageCard({ theme, message, errMsg, editMessage} : MessageCardProps) {
+export default function MessageCard({ theme, message, errMsg, editMessage, last} : MessageCardProps) {
   const darkTheme = theme == "DARK"
 
   const [isEditing, setIsEditing] = useState(false);
@@ -76,13 +77,14 @@ export default function MessageCard({ theme, message, errMsg, editMessage} : Mes
   }
 
   function renderMessage() {
-    let content;
+    let content = "";
     if (message.content.trim().length > 0) {
       content = message.content
     } else if (message.partial) {
-      content = message.partial + (blinkRef.current ? "" : "█");
+      content = message.partial;
+      if (last && !blinkRef.current) content += "█";
     } else {
-      content = (blinkRef.current ? "" : "█");
+      if (last && !blinkRef.current) content = "█";
     }
 
     return (

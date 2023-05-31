@@ -6,11 +6,7 @@ import { countTokens } from '@/tokenCounter';
 import { Constants } from '@/constants';
 import { DBChat, Chat, ChatMessage, ChatStatus, Role } from '@/types';
 
-const initialChat = {
-  ...defaultChat(Constants.DEFAULT_SYS_MSG),
-  id: 0,
-}
-
+const initialChat = blankNewChat();
 
 /**
  * "API" for chat.
@@ -146,70 +142,6 @@ function useChat() {
     }
   } ,[dispatch]);
 
-
-  const sendMessage = useCallback(async(chat: Chat, message: string) => {
-    const sentChatId = chat.id;
-    const lastMessage = chat.messages.at(-1);
-    let messageId = lastMessage ? lastMessage.id + 1 : 1;
-    const newMessage = getUserMsg(messageId, message)
-
-    chat.messages.push(newMessage);
-    chat.status = "SENDING";
-
-    const updated = await updateDBChat(chat);
-    if (!updated) {
-      console.warn("sendMessage() failed to update Chat! - might be deleted.");
-    }
-    if (updated === chatIdRef.current) {
-      dispatch({type: 'set-chat', chat: chat});
-    }
-
-    sendToOpenAI(sentChatId, messageId, chat.messages);
-  }, [dispatch])
-
-  const editMessage = useCallback(async(chatId: number, messageId: number, content: string) => {
-    const chat = await getDBChat(chatId);
-    if (!chat) {
-      console.warn("editMessage() failed getting chat - might be deleted.");
-      return;
-    }
-
-    const editedChat = getChatAfterEditingMessage(chat, messageId, content);
-    chat.status = "SENDING";
-
-    const updated = await updateDBChat(chat);
-    if (!updated) {
-      console.warn("editMessage() failed to update Chat! - might be deleted.");
-    }
-    if (updated === chatIdRef.current) {
-      dispatch({type: 'set-chat', chat: chat});
-    }
-    sendToOpenAI(chat.id, messageId, editedChat.messages);
-  }, [dispatch]);
-
-  const resendMessage = useCallback(async(chatId: number) => {
-    const chat = await getDBChat(chatId);
-    if (!chat) {
-      console.warn("resendMessage() failed getting chat - might be deleted.");
-      return;
-    }
-
-    const lastUserMessage = chat.messages.findLast((message) => message.role === "user");
-    const lastMessageId = lastUserMessage ? lastUserMessage.id : chat.messages.length - 1;
-    const editedChat = getChatAfterEditingMessage(chat, lastMessageId, lastUserMessage?.content);
-
-    chat.status = "SENDING";
-
-    const updated = await updateDBChat(chat);
-    if (!updated) {
-      console.warn("editMessage() failed to update Chat! - might be deleted.");
-    }
-    if (updated === chatIdRef.current) {
-      dispatch({type: 'set-chat', chat: chat});
-    }
-    sendToOpenAI(chat.id, lastMessageId, editedChat.messages);
-  }, [dispatch]);
-
   const sendToOpenAI = useCallback(async(sentChatId: number, messageId: number, messages: ChatMessage[]) => {
     const resMsgId = messageId + 1;
     const resMsg = getChatMsg(resMsgId, "");
@@ -261,8 +193,70 @@ function useChat() {
         dispatch({type: 'set-chat', chat: sentChat});
       }
     }
-  }, [dispatch, settings.apiKey])
+  }, [dispatch, settings.apiKey, settings.model, addMessage, setPartialMessage])
 
+  const sendMessage = useCallback(async(chat: Chat, message: string) => {
+    const sentChatId = chat.id;
+    const lastMessage = chat.messages.at(-1);
+    let messageId = lastMessage ? lastMessage.id + 1 : 1;
+    const newMessage = getUserMsg(messageId, message)
+
+    chat.messages.push(newMessage);
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("sendMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+
+    sendToOpenAI(sentChatId, messageId, chat.messages);
+  }, [dispatch, sendToOpenAI])
+
+  const editMessage = useCallback(async(chatId: number, messageId: number, content: string) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("editMessage() failed getting chat - might be deleted.");
+      return;
+    }
+
+    const editedChat = getChatAfterEditingMessage(chat, messageId, content);
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("editMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+    sendToOpenAI(chat.id, messageId, editedChat.messages);
+  }, [dispatch, sendToOpenAI]);
+
+  const resendMessage = useCallback(async(chatId: number) => {
+    const chat = await getDBChat(chatId);
+    if (!chat) {
+      console.warn("resendMessage() failed getting chat - might be deleted.");
+      return;
+    }
+
+    const lastUserMessage = chat.messages.findLast((message) => message.role === "user");
+    const lastMessageId = lastUserMessage ? lastUserMessage.id : chat.messages.length - 1;
+    const editedChat = getChatAfterEditingMessage(chat, lastMessageId, lastUserMessage?.content);
+
+    chat.status = "SENDING";
+
+    const updated = await updateDBChat(chat);
+    if (!updated) {
+      console.warn("editMessage() failed to update Chat! - might be deleted.");
+    }
+    if (updated === chatIdRef.current) {
+      dispatch({type: 'set-chat', chat: chat});
+    }
+    sendToOpenAI(chat.id, lastMessageId, editedChat.messages);
+  }, [dispatch, sendToOpenAI]);
 
   return {
     chat: currChat,
