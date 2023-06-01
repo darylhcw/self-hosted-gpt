@@ -35,7 +35,13 @@ export default function MessageBox({
   const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      sendMessage();
+      if (allowSend()) {
+        if (status == "ERROR") {
+          debouncedResend()
+        } else {
+          debouncedSend();
+        }
+      }
     }
   };
 
@@ -93,7 +99,7 @@ export default function MessageBox({
                          onKeyDown={handleKeyPress}
                          value={message}
                          placeholder={hasAPIKey ? "Send a message." : "MISSING APIKey. Please check settings!"}
-                         disabled={!allowSend()}/>
+                         disabled={!hasAPIKey}/>
         <button onClick={status == "ERROR" ? debouncedResend : debouncedSend}
                 className={styles.send}
                 disabled={!allowSend()}>
