@@ -112,6 +112,13 @@ export default function SideBar({
           )}
         </ol>
         <ChatStorageBar/>
+        <div className={styles["by-section"]}>
+          By Daryl
+          <a href="https://github.com/darylhcw/self-hosted-gpt"
+             target="_blank" rel="noopener">
+             <img src="/github.svg" className="hover-brighten"/>
+         </a>
+        </div>
       </nav>
     </>
   )

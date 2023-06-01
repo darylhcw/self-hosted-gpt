@@ -103,6 +103,25 @@
   background: var(--grey-dark-3);
 }
 
+.by-section {
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--text-white);
+
+  border-top: 1px solid var(--grey-light-transparent-1);
+}
+.by-section img {
+  margin-left: 0.5rem;
+  width: 24px;
+  height: 24px;
+
+  cursor: pointer
+}
+
 @media (max-width: 336px) {
   .container {
     width: var(--sidebar-w-tiny-screen);
