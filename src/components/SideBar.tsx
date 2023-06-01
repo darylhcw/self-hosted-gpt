@@ -116,7 +116,7 @@ export default function SideBar({
           By Daryl
           <a href="https://github.com/darylhcw/self-hosted-gpt"
              target="_blank" rel="noopener">
-             <img src="/github.svg" className="hover-brighten"/>
+             <img src="github.svg" className="hover-brighten"/>
          </a>
         </div>
       </nav>
