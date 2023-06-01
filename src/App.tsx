@@ -112,6 +112,13 @@ export default function App() {
     chat.editMessage(currentChat.id, messageId, content);
   }, [currentChat.id]);
 
+  const editLastCallback = useCallback(async(content: string) => {
+    let lastUserMessage = currentChat.messages.findLast((msg) => msg.role === "user");
+    if (!lastUserMessage) lastUserMessage = currentChat.messages.at(-1);
+    const messageId = lastUserMessage ? lastUserMessage.id : 1;
+    chat.editMessage(currentChat.id, messageId, content);
+  }, [currentChat.id]);
+
   const resendCallback = useCallback(async() => {
     chat.resendMessage(currentChat.id);
   }, [currentChat.id]);
@@ -136,10 +143,11 @@ export default function App() {
       <div className={styles.sidebar}
            style={ sideBarOpen ? {display: "flex"} : {}}>
         <SideBar coll={collection}
-                startNewChat={startNewChat}
-                setCurrentChat={setCurrentChat}
-                setChatTitle={chatColl.setChatTitle}
-                deleteChat={deleteChat}/>
+                 currChatId={currentChat.id}
+                 startNewChat={startNewChat}
+                 setCurrentChat={setCurrentChat}
+                 setChatTitle={chatColl.setChatTitle}
+                 deleteChat={deleteChat}/>
         { sideBarOpen
             && <button onClick={ () => {setSideBarOpen(false)} }
                        className={styles["close-sidebar-button"]}>
@@ -170,6 +178,7 @@ export default function App() {
         <div className={styles["message-box"]}>
           <MessageBox status={currentChat.status}
                       sendCB={sendCallback}
+                      editLastCB={editLastCallback}
                       resendCB={resendCallback}
                       hasMsg={hasSentMessage()}/>
           { !scrolledToBottom && renderScrollToBottomButton() }

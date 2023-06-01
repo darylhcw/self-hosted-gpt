@@ -6,8 +6,8 @@ import GrowingTextArea from '@/components/GrowingTextArea';
 import { ChatMessage, Theme } from "@/types";
 import styles from "./MessageCard.module.css";
 
-const OPEN_TIME = 500;
-const BLINK_TIME = 200;
+const OPEN_TIME = 900;
+const CLOSED_TIME = 500;
 
 export interface MessageCardProps {
   theme: Theme;
@@ -24,22 +24,7 @@ export default function MessageCard({ theme, message, errMsg, editMessage, last}
   const [editedMsg, setEditedMsg] = useState(message.content);
   const editTxtArea = useRef<HTMLTextAreaElement>(null);
 
-  // Use ref. We don't dispatch more state changes on each stream read callback.
-  const blinkRef = useRef(false);
-
-  useEffect(() => {
-    let isLatest = true;
-
-    function blink() {
-      if (!isLatest) return;
-
-      setTimeout(blink, (blinkRef.current ? OPEN_TIME : BLINK_TIME));
-      blinkRef.current = !blinkRef.current;
-    }
-    blink();
-
-    return () => { isLatest = false };
-  }, [])
+  const [blinking, setBlinking] = useState(false);
 
   useEffect(() => {
     editTxtArea?.current?.focus();
@@ -68,6 +53,10 @@ export default function MessageCard({ theme, message, errMsg, editMessage, last}
     navigator.clipboard.writeText(message.content);
   }
 
+  async function blink() {
+    setTimeout( () => { setBlinking(!blinking) }, (blinking ? OPEN_TIME : CLOSED_TIME));
+  }
+
   function renderErrorMsg() {
     return (
       <p className={`${darkTheme ? styles["error-dark"] : styles.error}`}>
@@ -82,17 +71,25 @@ export default function MessageCard({ theme, message, errMsg, editMessage, last}
       content = message.content
     } else if (message.partial) {
       content = message.partial;
-      if (last && !blinkRef.current) content += "█";
+      if (last && !blinking) content += "█";
+      blink();
     } else {
-      if (last && !blinkRef.current) content = "█";
+      // No content, waiting for response.
+      if (last && !blinking) content = "█";
+      blink();
     }
 
     return (
-      <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
-                     components={markdownComps}
-                     linkTarget="_new">
-        { content }
-      </ReactMarkdown>
+      <>
+        { content?.trim().length > 0
+          ? <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
+                           components={markdownComps}
+                           linkTarget="_new">
+              { content }
+            </ReactMarkdown>
+          :<div className={styles["invisible"]}>|</div>
+        }
+      </>
     )
   }
 

@@ -9,6 +9,7 @@ import styles from './MessageBox.module.css'
 interface MessageBoxProps {
   status: ChatStatus;
   sendCB: (message: string) => Promise<void>;
+  editLastCB: (message: string) => Promise<void>;
   resendCB: () => Promise<void>;
   hasMsg : boolean;
 }
@@ -16,6 +17,7 @@ interface MessageBoxProps {
 export default function MessageBox({
   status,
   sendCB,
+  editLastCB,
   resendCB,
   hasMsg,
 } : MessageBoxProps
@@ -27,23 +29,6 @@ export default function MessageBox({
 
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState("");
-
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(event.target.value);
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      if (allowSend()) {
-        if (status == "ERROR") {
-          debouncedResend()
-        } else {
-          debouncedSend();
-        }
-      }
-    }
-  };
 
   const sendMessage = useCallback(async () => {
     if (!allowSend()) return;
@@ -68,6 +53,18 @@ export default function MessageBox({
 
   const debouncedResend = useDebounce(resendMessage, 1000);
 
+  const editLastAndResend = useCallback(async() => {
+    if (!allowSend()) return;
+    if (message.trim().length <= 0) return;
+
+    setIsSending(true);
+    setMessage("");
+    await editLastCB(message);
+    setIsSending(false);
+  }, [editLastCB, message, setIsSending, isSending, status]);
+
+  const debouncedEditLast = useDebounce(editLastAndResend, 1000);
+
   function allowSend() {
     return hasAPIKey && !isSending && status !== "SENDING";
   }
@@ -84,6 +81,22 @@ export default function MessageBox({
     }
   }
 
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(event.target.value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (!allowSend()) return;
+
+      if (status == "ERROR") {
+        debouncedEditLast();
+      } else {
+        debouncedSend();
+      }
+    }
+  };
 
   return (
     <div className={`${styles.container} ${themeClass}`}>

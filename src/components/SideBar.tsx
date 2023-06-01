@@ -10,6 +10,7 @@ const MemoedSideBarChat = memo(SideBarChat);
 
 interface SideBarProps {
   coll : ChatCollection;
+  currChatId: number;
   setCurrentChat: (id: number) => void;
   startNewChat: () => void;
   setChatTitle: (chatId: number, title: string) => void;
@@ -18,6 +19,7 @@ interface SideBarProps {
 
 export default function SideBar({
   coll,
+  currChatId,
   setCurrentChat,
   startNewChat,
   setChatTitle,
@@ -104,6 +106,7 @@ export default function SideBar({
               { renderDateLabelIfNeeded(chat.createdAt) }
               <li>
                 <MemoedSideBarChat header={chat}
+                                   isCurrent={chat.id === currChatId}
                                    setCurrentChat={setCurrentChat}
                                    setChatTitle={setChatTitle}
                                    deleteChat={deleteChat}/>

@@ -8,6 +8,7 @@
   max-width: 100%;
   margin: 0 auto;
   padding: 1rem;
+
   display: flex;
   justify-content: space-between;
   column-gap: 2rem;
@@ -45,6 +46,11 @@
 .error-dark {
   white-space: pre-wrap;
   color: var( --text-error-dark-theme);
+}
+
+/* "Trick to ensure the blinking caret doesn't change height of message card." */
+.invisible {
+  opacity: 0;
 }
 
 .codeblock {

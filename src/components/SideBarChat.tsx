@@ -6,6 +6,7 @@ import styles from './SideBarChat.module.css'
 
 interface SideBarChatProps {
   header: ChatHeader;
+  isCurrent: boolean,
   setCurrentChat: (id: number) => void;
   setChatTitle: (chatId: number, title: string) => void;
   deleteChat: (chatId: number) => void;
@@ -13,6 +14,7 @@ interface SideBarChatProps {
 
 export default function SideBarChat({
   header,
+  isCurrent,
   setCurrentChat,
   setChatTitle,
   deleteChat,
@@ -49,7 +51,7 @@ export default function SideBarChat({
   return (
     <div className={styles.container}>
       <button onClick={() => setCurrentChat(header.id)}
-              className={styles.chat}>
+              className={`${styles.chat} ${isCurrent ? styles.current : ""}`}>
         <img src="chat-bubble-light.svg" alt="chat-bubble"/>
         <div className={styles["chat-name"]}>
           { isEditingTitle
