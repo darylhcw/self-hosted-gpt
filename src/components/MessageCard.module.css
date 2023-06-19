@@ -62,7 +62,7 @@
   border-radius: 2px;
 }
 .codeblock-inner {
-  white-space: pre-line;
+  white-space: pre-wrap;
 }
 
 .buttons-container {
