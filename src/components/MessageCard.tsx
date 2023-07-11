@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
-import rehypeRaw from 'rehype-raw'
 import GrowingTextArea from '@/components/GrowingTextArea';
 import { ChatMessage, Theme } from "@/types";
 import styles from "./MessageCard.module.css";
@@ -82,7 +81,7 @@ export default function MessageCard({ theme, message, errMsg, editMessage, last}
     return (
       <>
         { content?.trim().length > 0
-          ? <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}], rehypeRaw]}
+          ? <ReactMarkdown rehypePlugins={[[rehypeHighlight, {detect: true, ignoreMissing: true}]]}
                            components={markdownComps}
                            linkTarget="_new">
               { content }
