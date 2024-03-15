@@ -15,6 +15,9 @@
 .container:not(:hover) .chats-container::-webkit-scrollbar-thumb {
   background: transparent;
 }
+.container:not(:hover) .chats-container {
+  scrollbar-color: transparent transparent;
+}
 
 .top-buttons {
   width: 100%;
@@ -95,6 +98,16 @@
   padding: 0 0.7rem;
   flex-grow: 1;
   overflow-y: scroll;
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--grey-light-2) var(--grey-dark-3);
+  }
+}
+.chats-container::-webkit-scrollbar {
+  width: 6px;
+}
+.chats-container::-webkit-scrollbar-thumb {
+  border-radius: 6px;
 }
 .chats-container::-webkit-scrollbar-thumb {
   background: var(--grey-light-2);

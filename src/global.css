@@ -6,7 +6,7 @@
   --messages-max-w: 1000px;
 
   --settings-btn-radius: 6px;
-  --scrollbar-w: 6px;
+  --scrollbar-w: 9px;
 
   --text-white: #ECECF1;
   --text-grey:  #8E8E94;
@@ -57,7 +57,6 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  scrollbar-width: thin;
 }
 *:focus:not(:focus-visible) {
   outline: none;
@@ -90,30 +89,31 @@ button {
   white-space: nowrap;
 }
 
-/* Scrollbar - firefox support (non-webkit) first */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--grey-light-2) var(--grey-light-1);
-}
-::-webkit-scrollbar {
+/* Scrollbar */
+html::-webkit-scrollbar {
   width: var(--scrollbar-w);
 }
-::-webkit-scrollbar-thumb { /* Foreground */
+html::-webkit-scrollbar-thumb { /* Foreground */
   border-radius: 6px;
   background: var(--grey-light-2);
 }
-::-webkit-scrollbar-track { /* Background */
+html::-webkit-scrollbar-track { /* Background */
   background: var(--grey-light-1);
-}
-
-.scroll-dark {
-  scrollbar-color: var(--grey-light-2) var(--grey-dark-3);
-}
-.scroll-dark::-webkit-scrollbar-thumb { /* Foreground */
-  background: var(--grey-light-2);
 }
 .scroll-dark::-webkit-scrollbar-track { /* Background */
   background: var(--grey-dark-2);
+}
+html {
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--grey-light-2) var(--grey-light-1);
+  }
+}
+html.scroll-dark {
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--grey-light-2) var(--grey-dark-2);
+  }
 }
 
 .dark-theme-bg {
