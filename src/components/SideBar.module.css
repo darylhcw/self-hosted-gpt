@@ -131,6 +131,7 @@
   margin-left: 0.5rem;
   width: 24px;
   height: 24px;
+  display: block;
 
   cursor: pointer
 }
