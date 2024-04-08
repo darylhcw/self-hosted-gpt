@@ -38,7 +38,7 @@ function useChat() {
     fetchLatestChat();
 
     return () => { isLatestFetch = false };
-  });
+  }, []);
 
   const newChat = useCallback(async(firstMsg: string) => {
     const newChat = {

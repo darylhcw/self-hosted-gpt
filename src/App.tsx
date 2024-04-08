@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { overContextLimit, getModels } from '@/api/chat';
+import { overContextLimit } from '@/api/chat';
 import TopBar from '@/components/TopBar';
 import SideBar from '@/components/SideBar';
 import ChatMessages from '@/components/ChatMessages';
@@ -65,7 +65,7 @@ export default function App() {
     } else if (scrolled <= offset) {
       setScrolledToBottom(false);
     }
-  };
+  }
 
   function scrollToBottom() {
     const main = mainRef.current;
@@ -74,15 +74,15 @@ export default function App() {
     window.scrollTo({top: main.scrollHeight});
   }
 
-  function startNewChat() {
+  const startNewChat = useCallback(() => {
     chat.setBlankNewChat();
-  }
+  }, [chat])
 
   const setCurrentChat = useCallback((id: number) => {
     if (id !== currentChat.id) {
       chat.setCurrentChat(id);
     }
-  }, [currentChat.id, chat.setCurrentChat])
+  }, [currentChat.id, chat])
 
   const deleteChat = useCallback((id: number) => {
     chat.deleteChat(id)
@@ -90,7 +90,7 @@ export default function App() {
     if (id === currentChat.id) {
       startNewChat();
     }
-  }, [currentChat.id, chat.deleteChat, chatColl.deleteChat, startNewChat])
+  }, [currentChat.id, chat, chatColl, startNewChat])
 
   async function sendCallback(message: string) {
     // Need to add new chat!
@@ -110,18 +110,18 @@ export default function App() {
 
   const editCallback = useCallback(async(messageId: number, content: string) => {
     chat.editMessage(currentChat.id, messageId, content);
-  }, [currentChat.id]);
+  }, [chat, currentChat.id]);
 
   const editLastCallback = useCallback(async(content: string) => {
     let lastUserMessage = currentChat.messages.findLast((msg) => msg.role === "user");
     if (!lastUserMessage) lastUserMessage = currentChat.messages.at(-1);
     const messageId = lastUserMessage ? lastUserMessage.id : 1;
     chat.editMessage(currentChat.id, messageId, content);
-  }, [currentChat.id]);
+  }, [chat, currentChat.messages, currentChat.id]);
 
   const resendCallback = useCallback(async() => {
     chat.resendMessage(currentChat.id);
-  }, [currentChat.id]);
+  }, [chat, currentChat.id]);
 
   function hasSentMessage() {
     const lastSender = currentChat?.messages.at(-1)?.role;
