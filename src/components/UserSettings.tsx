@@ -3,7 +3,7 @@ import Modal from '@/components/Modal';
 import {
   useUserSettings,
   useUserSettingsDispatch,
-  userSettingsDispatchFunctions,
+  useUserSettingsDispatchFunctions,
 } from '@/hooks/useUserSettings'
 import { Constants } from '@/constants';
 import styles from './UserSettings.module.css';
@@ -18,7 +18,7 @@ const ENV_APIKEY = import.meta.env.VITE_OPENAI_API_KEY;
 export default function UserSettings({closeSettings, refreshNewChat} : UserSettingsProps) {
   const settings = useUserSettings();
   const dispatchSettings = useUserSettingsDispatch();
-  const { setTheme, setModel, setAPIKey, setSystemMessage } = userSettingsDispatchFunctions(dispatchSettings);
+  const { setTheme, setModel, setAPIKey, setSystemMessage } = useUserSettingsDispatchFunctions(dispatchSettings);
 
   const [showAPIKey, setShowAPIKey] = useState(false);
 

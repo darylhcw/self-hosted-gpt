@@ -38,7 +38,7 @@ function useChat() {
     fetchLatestChat();
 
     return () => { isLatestFetch = false };
-  }, []);
+  });
 
   const newChat = useCallback(async(firstMsg: string) => {
     const newChat = {
@@ -73,13 +73,13 @@ function useChat() {
     return true;
   } ,[dispatch]);
 
-  const deleteChat = useCallback(async(chatId: number) => {
+  const deleteChat = async(chatId: number) => {
     const deleted = await deleteDBChat(chatId);
     if (!deleted) {
       console.error("Failed to delete in deleteChat()!");
       return;
     }
-  } ,[dispatch]);
+  };
 
   const addMessage = useCallback(async(chatId: number, message: ChatMessage) => {
     const chat = await getDBChat(chatId);
@@ -160,7 +160,7 @@ function useChat() {
           console.error("sendToOpenAI() failed getting chat - might be deleted");
           setStatus(sentChatId, "ERROR");
           return;
-        };
+        }
 
         addOpenAIResponseToChat(sentChat, resMsg, openAIResponse);
         sentChat.status = "READY";
@@ -193,12 +193,12 @@ function useChat() {
         dispatch({type: 'set-chat', chat: sentChat});
       }
     }
-  }, [dispatch, settings.apiKey, settings.model, addMessage, setPartialMessage])
+  }, [dispatch, settings.apiKey, settings.model, addMessage, setPartialMessage, setStatus])
 
   const sendMessage = useCallback(async(chat: Chat, message: string) => {
     const sentChatId = chat.id;
     const lastMessage = chat.messages.at(-1);
-    let messageId = lastMessage ? lastMessage.id + 1 : 1;
+    const messageId = lastMessage ? lastMessage.id + 1 : 1;
     const newMessage = getUserMsg(messageId, message)
 
     chat.messages.push(newMessage);

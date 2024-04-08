@@ -86,7 +86,7 @@ function userSettingsReducer(state: UserSettings, action: UserSettingsDispatchAc
   }
 }
 
-function userSettingsDispatchFunctions(dispatch: React.Dispatch<UserSettingsDispatchAction>) {
+function useUserSettingsDispatchFunctions(dispatch: React.Dispatch<UserSettingsDispatchAction>) {
   const setTheme = useCallback((theme: Theme) => {
     dispatch({ type: "set-theme", theme: theme })
   }, [dispatch]);
@@ -124,7 +124,8 @@ function initialDispatch(action: UserSettingsDispatchAction) {
  ********************************************/
 
 export {
-  useUserSettings, useUserSettingsDispatch,
+  useUserSettings,
+  useUserSettingsDispatch,
   UserSettingsProvider,
-  userSettingsDispatchFunctions,
+  useUserSettingsDispatchFunctions,
 }
