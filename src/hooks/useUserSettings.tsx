@@ -42,7 +42,7 @@ function initialUserSettings() {
 
   return {
     theme: "LIGHT" as Theme,
-    model: Constants.GPT_3_5,
+    model: Constants.GPT_4_OMNI,
     systemMessage: Constants.DEFAULT_SYS_MSG,
     apiKey: ENV_APIKEY,
   }

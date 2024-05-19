@@ -81,6 +81,8 @@ export default function UserSettings({closeSettings, refreshNewChat} : UserSetti
                     onChange={handleModelChange}>
               <option value={Constants.GPT_3_5}>GPT-3.5-Turbo</option>
               <option value={Constants.GPT_4}>GPT-4</option>
+              <option value={Constants.GPT_4_TURBO}>GPT-4-Turbo</option>
+              <option value={Constants.GPT_4_OMNI}>GPT-4o</option>
             </select>
           </div>
 

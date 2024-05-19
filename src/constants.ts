@@ -7,15 +7,19 @@ export class Constants {
   // Models
   static readonly GPT_3_5 = "gpt-3.5-turbo";
   static readonly GPT_4 = "gpt-4";
+  static readonly GPT_4_TURBO = "gpt-4-turbo"
+  static readonly GPT_4_OMNI = "gpt-4o";
 
   static readonly GPT_3_5_MAX_TOKENS = 4096;
   static readonly GPT_4_MAX_TOKENS = 8192;
+  static readonly GPT_4_TURBO_MAX_TOKENS = 128000;
+  static readonly GPT_4_OMNI_MAX_TOKENS = 128000;
 
   // LocalStorage Keys;
   static readonly LS_SETTINGS_KEY = "LS-SETTINGS";
 
   // Taken from https://platform.openai.com/docs/guides/chat/instructing-chat-models
-  static readonly DEFAULT_SYS_MSG = "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: 2021-09-01";
+  static readonly DEFAULT_SYS_MSG = "You are GPT, a large language model trained by OpenAI. Answer as concisely as possible.";
 
   // Errors
   static readonly DEFAULT_ERR_MSG = "There was an error generating the response."

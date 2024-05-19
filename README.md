@@ -4,6 +4,13 @@ Self-host ChatGPT with GPT-3.5/GPT-4 using your own API key.
 
 
 ## Why?
+
+- This was originally made when GPT-4o/GPT-4 were not publicly available, and were not free (see the section below)
+- Updated to also have GPT-4o as an option because it was requested.
+- Currently although GPT-4o is free to use in ChatGPT, there's still limitations for free users like only being able to access it when there's enough capacity and message limits per day.
+
+
+(**OUTDATED after GPT-4o**) Original reasoning when this was made (GPT-4 newly released):
 - ChatGPT Plus costs $20 a month.
 - With an API Key,it costs $0.06 per 1K tokens (at 8K context) for GPT-4.
 - To reach $20, you need to use $20/$0.06 = 333.333 * 1K tokens = 333K tokens.
